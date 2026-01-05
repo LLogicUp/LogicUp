@@ -6,3 +6,4 @@ app = FastAPI()
 def read_root():
     return {"message": "LogicUp Backend is Running!"}
 
+#123
