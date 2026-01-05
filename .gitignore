@@ -137,3 +137,19 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+
+# 가상환경 제외
+venv/
+backend/venv/
+
+# 파이썬 캐시 파일 제외
+__pycache__/
+*.pyc
+
+# 리액트 라이브러리 제외
+node_modules/
+frontend/node_modules/
+
+# 환경변수 파일 (보안)
+.env
