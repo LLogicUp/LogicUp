@@ -1,38 +1,83 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f0f2f5;
+}
+
 .App {
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
 .App-header {
   background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  padding: 20px;
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.App-header h1 {
+  margin: 0;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.main-container {
+  display: flex;
+  justify-content: space-around;
+  padding: 20px;
+  gap: 20px;
+}
+
+.code-editor, .hint-display {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  width: 45%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.code-editor h2, .hint-display h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+.code-editor textarea {
+  width: 100%;
+  height: 400px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1rem;
+  box-sizing: border-box; /* Ensures padding doesn't add to the width */
+}
+
+.hint-content {
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  padding: 15px;
+  min-height: 100px;
+  text-align: left;
+}
+
+.App-footer {
+  padding: 20px;
+}
+
+.App-footer button {
+  background-color: #61dafb;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.App-footer button:hover {
+  background-color: #4fa8c5;
 }
