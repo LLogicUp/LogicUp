@@ -3,9 +3,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from groq import Groq
 import os
+import logging
+from logging.handlers import TimedRotatingFileHandler
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# 로그 설정
+os.makedirs("logs", exist_ok=True)
+logger = logging.getLogger("logicup")
+logger.setLevel(logging.INFO)
+
+file_handler = TimedRotatingFileHandler(
+    "logs/api.log", when="midnight", backupCount=1, encoding="utf-8"
+)
+file_handler.setFormatter(logging.Formatter(
+    "%(asctime)s | %(levelname)s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+))
+logger.addHandler(file_handler)
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
@@ -41,6 +56,8 @@ def get_hint(request: HintRequest):
         f"[힌트 단계 {request.hint_level}] {level_instructions[request.hint_level]}"
     )
 
+    logger.info(f"힌트 요청 | level={request.hint_level} | code_length={len(request.code)} | error_log={request.error_log[:100]}")
+
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[
@@ -55,4 +72,6 @@ def get_hint(request: HintRequest):
             {"role": "user", "content": prompt},
         ],
     )
+
+    logger.info(f"힌트 응답 완료 | level={request.hint_level}")
     return {"hint": response.choices[0].message.content, "hint_level": request.hint_level}
