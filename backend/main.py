@@ -20,7 +20,7 @@ file_handler = TimedRotatingFileHandler(
 file_handler.setFormatter(logging.Formatter(
     "%(asctime)s | %(levelname)s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
 ))
-logger.addHandler(file_handler)
+logger.addHandler(file_handler) 
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
@@ -45,9 +45,9 @@ def health_check():
 @app.post("/hint")
 def get_hint(request: HintRequest):
     level_instructions = {
-        1: "코드에서 오류가 발생한 위치만 알려주세요. 절대 수정 방법이나 정답 코드는 제시하지 마세요.",
+        1: "코드에서 오류가 발생한 위치의 줄과 오류 원인만 알려주세요. 절대 수정 방법이나 정답 코드는 제시하지 마세요.",
         2: "오류와 관련된 개념을 설명해주세요. 코드 예시나 정답은 제시하지 마세요.",
-        3: "문제를 해결할 수 있는 의사코드(pseudocode)를 제공해주세요. 실제 코드는 작성하지 마세요.",
+        3: "문제를 해결할 수 있는 의사코드(pseudocode)를 알고리즘 교재 스타일로 작성해주세요. 형식은 다음을 따르세요: 첫 줄에 'Alg.: 알고리즘이름(입력)', 대입은 ← 기호 사용, 반복은 'for i ← 1 to n / do', 조건은 'if 조건 then / else', 들여쓰기로 계층 표현. 실제 동작하는 코드는 절대 작성하지 마세요.",
     }
 
     prompt = (
@@ -59,14 +59,19 @@ def get_hint(request: HintRequest):
     logger.info(f"힌트 요청 | level={request.hint_level} | code_length={len(request.code)} | error_log={request.error_log[:100]}")
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="openai/gpt-oss-120b",
         messages=[
             {
                 "role": "system",
                 "content": (
                     "당신은 프로그래밍 학습 보조 튜터입니다. "
                     "학생이 스스로 문제를 해결할 수 있도록 단계적 힌트만 제공합니다. "
-                    "절대 정답 코드를 직접 작성해주지 않습니다."
+                    "1.   완성 코드 제공 금지"
+                    "2.   함수 전체 코드 제시 금지"
+                    "3.   복사·붙여넣기 가능한 코드 조각 제공 금지"
+                    "4.   정답 코드와 동일한 구조의 코드 출력 금지"
+                    "5.   단계 건너뛰기 금지"
+                    "6.   이전 단계로 되돌리기 금지 "
                 ),
             },
             {"role": "user", "content": prompt},
