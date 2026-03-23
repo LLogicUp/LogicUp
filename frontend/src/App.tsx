@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import Editor from '@monaco-editor/react';
+import { useState } from 'react';
 import './App.css';
 
 function App() {
@@ -41,17 +40,10 @@ function App() {
       <main className="main-container">
         <div className="code-editor">
           <h2>Code Input</h2>
-          <Editor
-            height="400px"
-            defaultLanguage="python"
+          <textarea
+            placeholder="Enter your code here..."
             value={code}
-            onChange={(value) => setCode(value ?? '')}
-            theme="vs-dark"
-            options={{
-              minimap: { enabled: false },
-              fontSize: 14,
-              scrollBeyondLastLine: false,
-            }}
+            onChange={(e) => setCode(e.target.value)}
           />
         </div>
         <div className="hint-display">
