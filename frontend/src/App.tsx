@@ -32,7 +32,7 @@ function App() {
       const data = await res.json();
       setExplanation(data.explanation ?? '');
       setPseudocode(data.pseudocode ?? '');
-      if (hintLevel < 3) setHintLevel(hintLevel + 1);
+      if (hintLevel < 4) setHintLevel(hintLevel + 1);
     } catch {
       setExplanation('서버에 연결할 수 없습니다. 백엔드가 실행 중인지 확인하세요.');
       setPseudocode('');
