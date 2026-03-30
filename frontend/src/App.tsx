@@ -1,7 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Editor from '@monaco-editor/react';
 import './App.css';
 
 function App() {
+  const [isDark, setIsDark] = useState(
+    () => window.matchMedia('(prefers-color-scheme: dark)').matches
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
   const [code, setCode] = useState<string>('');
   const [hint, setHint] = useState<string>('');
   const [hintLevel, setHintLevel] = useState<number>(1);
@@ -40,10 +52,17 @@ function App() {
       <main className="main-container">
         <div className="code-editor">
           <h2>Code Input</h2>
-          <textarea
-            placeholder="Enter your code here..."
+          <Editor
+            height="400px"
+            defaultLanguage="python"
             value={code}
-            onChange={(e) => setCode(e.target.value)}
+            onChange={(value) => setCode(value ?? '')}
+            theme={isDark ? 'vs-dark' : 'light'}
+            options={{
+              minimap: { enabled: false },
+              fontSize: 14,
+              scrollBeyondLastLine: false,
+            }}
           />
         </div>
         <div className="hint-display">

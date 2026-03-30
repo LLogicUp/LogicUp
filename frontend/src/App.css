@@ -43,15 +43,10 @@ body {
   color: #333;
 }
 
-.code-editor textarea {
-  width: 100%;
-  height: 400px;
+.code-editor .monaco-editor-wrapper {
   border: 1px solid #ccc;
   border-radius: 4px;
-  padding: 10px;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 1rem;
-  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .hint-content {
