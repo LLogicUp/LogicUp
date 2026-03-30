@@ -54,7 +54,7 @@ function App() {
           <h2>Code Input</h2>
           <Editor
             height="400px"
-            defaultLanguage="python"
+            defaultLanguage="c"
             value={code}
             onChange={(value) => setCode(value ?? '')}
             theme={isDark ? 'vs-dark' : 'light'}
