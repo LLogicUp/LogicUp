@@ -72,6 +72,15 @@ function App() {
     }
   };
 
+  const resetAll = () => {
+    setProblem('');
+    setExpectedOutput('');
+    setProblemNumber('');
+    setCode('');
+    setHints([]);
+    setHintLevel(1);
+  };
+
   const getButtonLabel = () => {
     if (loading) return '요청 중...';
     if (hintLevel > 3) return '힌트 완료';
@@ -106,6 +115,13 @@ function App() {
           disabled={loading || hintLevel > 3}
         >
           {getButtonLabel()}
+        </button>
+        <button
+          className="reset-button"
+          onClick={resetAll}
+          disabled={loading}
+        >
+          Reset
         </button>
       </footer>
     </div>

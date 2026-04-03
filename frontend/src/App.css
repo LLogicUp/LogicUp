@@ -186,6 +186,9 @@ body {
 }
 
 .App-footer {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
   padding: 20px;
 }
 
@@ -207,4 +210,12 @@ body {
 .App-footer button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.reset-button {
+  background-color: #888 !important;
+}
+
+.reset-button:hover:not(:disabled) {
+  background-color: #666 !important;
 }
