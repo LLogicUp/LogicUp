@@ -79,7 +79,7 @@ function App() {
   };
 
   return (
-    <div className="App">
+    <div className={`App${isDark ? ' dark' : ''}`}>
       <Header source={source} onSourceChange={handleSourceChange} />
       <main className="main-container">
         <div className="code-editor">
