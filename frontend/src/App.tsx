@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
-import Editor from '@monaco-editor/react';
+import Header, { type Source } from './components/Header';
+import ProblemInput from './components/ProblemInput';
+import CodeEditor from './components/CodeEditor';
+import HintPanel, { type Hint } from './components/HintPanel';
 import './App.css';
 
 function App() {
@@ -14,14 +17,21 @@ function App() {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
-  const [source, setSource] = useState<'direct' | 'baekjoon' | 'oj'>('direct');
+  const [source, setSource] = useState<Source>('direct');
   const [problemNumber, setProblemNumber] = useState('');
   const [problem, setProblem] = useState('');
   const [expectedOutput, setExpectedOutput] = useState('');
   const [code, setCode] = useState('');
-  const [hints, setHints] = useState<{ level: number; explanation: string; pseudocode: string }[]>([]);
+  const [hints, setHints] = useState<Hint[]>([]);
   const [hintLevel, setHintLevel] = useState(1);
   const [loading, setLoading] = useState(false);
+
+  const handleSourceChange = (newSource: Source) => {
+    setSource(newSource);
+    setProblem('');
+    setExpectedOutput('');
+    setProblemNumber('');
+  };
 
   const requestHint = async () => {
     if (!code.trim()) return;
@@ -70,101 +80,25 @@ function App() {
 
   return (
     <div className="App">
-      <header className="App-header">
-        <h1>LogicUp</h1>
-        <nav className="nav-tabs">
-          {(['direct', 'baekjoon', 'oj'] as const).map((s) => (
-            <button
-              key={s}
-              className={`nav-tab${source === s ? ' active' : ''}`}
-              onClick={() => {
-                setSource(s);
-                setProblem('');
-                setExpectedOutput('');
-                setProblemNumber('');
-              }}
-            >
-              {s === 'direct' ? '직접 입력' : s === 'baekjoon' ? '백준' : 'OJ'}
-            </button>
-          ))}
-        </nav>
-      </header>
+      <Header source={source} onSourceChange={handleSourceChange} />
       <main className="main-container">
         <div className="code-editor">
-          {source === 'direct' && (
-            <>
-              <div className="input-field">
-                <label>문제 설명</label>
-                <textarea
-                  value={problem}
-                  onChange={(e) => setProblem(e.target.value)}
-                  placeholder="문제를 입력하세요 (선택)"
-                  rows={4}
-                />
-              </div>
-              <div className="input-field">
-                <label>정답 예시 출력</label>
-                <textarea
-                  value={expectedOutput}
-                  onChange={(e) => setExpectedOutput(e.target.value)}
-                  placeholder="정답 예시 출력을 입력하세요 (선택)"
-                  rows={3}
-                />
-              </div>
-            </>
-          )}
-          {source === 'baekjoon' && (
-            <div className="input-field">
-              <label>백준 문제 번호</label>
-              <input
-                type="text"
-                className="problem-number-input"
-                value={problemNumber}
-                onChange={(e) => setProblemNumber(e.target.value)}
-                placeholder="문제 번호를 입력하세요 (예: 1000)"
-              />
-            </div>
-          )}
-          {source === 'oj' && (
-            <div className="input-field">
-              <p className="hint-placeholder">준비 중입니다.</p>
-            </div>
-          )}
-          <h2>Code Input</h2>
-          <Editor
-            height="400px"
-            defaultLanguage="c"
-            value={code}
-            onChange={(value) => setCode(value ?? '')}
-            theme={isDark ? 'vs-dark' : 'light'}
-            options={{
-              minimap: { enabled: false },
-              fontSize: 14,
-              scrollBeyondLastLine: false,
-            }}
+          <ProblemInput
+            source={source}
+            problem={problem}
+            expectedOutput={expectedOutput}
+            problemNumber={problemNumber}
+            onProblemChange={setProblem}
+            onExpectedOutputChange={setExpectedOutput}
+            onProblemNumberChange={setProblemNumber}
+          />
+          <CodeEditor
+            code={code}
+            isDark={isDark}
+            onCodeChange={setCode}
           />
         </div>
-        <div className="hint-display">
-          <h2>Hint</h2>
-          <div className="hint-content">
-            {hints.length > 0 ? (
-              hints.map((hint) => (
-                <div key={hint.level} className="hint-item">
-                  <span className="hint-level-badge">{hint.level}단계 힌트</span>
-                  <p>{hint.explanation}</p>
-                  {hint.pseudocode && (
-                    <div className="hint-pseudocode">
-                      <h3>의사코드</h3>
-                      <pre>{hint.pseudocode}</pre>
-                    </div>
-                  )}
-                </div>
-              ))
-            ) : (
-              <p className="hint-placeholder">코드를 입력하고 힌트를 요청하세요.</p>
-            )}
-          </div>
-        </div>
+        <HintPanel hints={hints} />
       </main>
       <footer className="App-footer">
         <button
