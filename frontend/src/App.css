@@ -38,6 +38,34 @@ body {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.input-field {
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.input-field label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.input-field textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.input-field textarea:focus {
+  outline: none;
+  border-color: #61dafb;
+}
+
 .code-editor h2, .hint-display h2 {
   margin-top: 0;
   color: #333;
@@ -67,6 +95,12 @@ body {
   padding: 2px 10px;
   border-radius: 12px;
   margin-bottom: 10px;
+}
+
+.hint-item + .hint-item {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #ddd;
 }
 
 .hint-placeholder {
