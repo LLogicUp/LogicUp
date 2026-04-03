@@ -35,9 +35,11 @@ app.add_middleware(
 )
 
 class HintRequest(BaseModel):
-    code: str
-    error_log: str = ""
-    hint_level: int = 1  # 1: 오류 위치, 2: 관련 개념, 3: 의사코드
+    problem: str = ""        # 문제 설명
+    code: str                # 사용자 코드
+    expected_output: str = "" # 정답 예시 출력
+    error_log: str = ""      # 에러 메시지
+    hint_level: int = 1      # 1: 오류 위치, 2: 관련 개념, 3: 의사코드
 
 
 @app.get("/health")
@@ -47,13 +49,32 @@ def health_check():
 @app.post("/hint")
 def get_hint(request: HintRequest):
     level_instructions = {
-        1: "코드에서 오류가 발생한 위치의 줄과 오류 원인만 알려주세요. 절대 수정 방법이나 정답 코드는 제시하지 마세요. 형식은 다음을 따르세요: 줄 번호 + 틀린 부분 강조, 에러 타입 명시 형식 / C언어가 아닌 코드가 들어오면 'C언어 코드만 지원합니다. C언어로 다시 입력해주세요.' 를 출력하세요.",
-        2: "오류와 관련된 개념을 설명해주세요. 코드 예시나 정답은 제시하지 마세요. 형식은 다음을 따르세요: 개념명 , 설명 , 예시",
-        3: "문제를 해결할 수 있는 의사코드(pseudocode)를 알고리즘 교재 스타일로 작성해주세요. 형식은 다음을 따르세요: 첫 줄에 'Alg.: 알고리즘이름(입력)', 대입은 ← 기호 사용, 반복은 'for i ← 1 to n / do', 조건은 'if 조건 then / else', 들여쓰기로 계층 표현. 실제 동작하는 코드는 절대 작성하지 마세요.",
+        1: (
+            "코드에서 오류가 발생한 위치의 줄과 오류 원인만 알려주세요. "
+            "절대 수정 방법이나 정답 코드는 제시하지 마세요. "
+            "형식: 줄 번호 + 틀린 부분 강조, 에러 타입 명시. "
+            "C언어가 아닌 코드가 들어오면 'C언어 코드만 지원합니다. C언어로 다시 입력해주세요.' 를 출력하세요."
+        ),
+        2: (
+            "오류와 관련된 개념을 설명해주세요. "
+            "코드 예시나 정답은 제시하지 마세요. "
+            "형식: 개념명, 설명, 예시"
+        ),
+        3: (
+            "문제를 해결할 수 있는 의사코드(pseudocode)를 알고리즘 교재 스타일로 작성해주세요. "
+            "형식: 첫 줄에 'Alg.: 알고리즘이름(입력)', "
+            "대입은 ← 기호 사용, "
+            "반복은 'for i ← 1 to n / do', "
+            "조건은 'if 조건 then / else', "
+            "들여쓰기로 계층 표현. "
+            "실제 동작하는 코드는 절대 작성하지 마세요."
+        ),
     }
 
     prompt = (
-        f"[코드]\n{request.code}\n\n"
+        f"[문제]\n{request.problem}\n\n"
+        f"[정답 예시 출력]\n{request.expected_output}\n\n"
+        f"[사용자 코드]\n{request.code}\n\n"
         f"[에러 로그]\n{request.error_log}\n\n"
         f"[힌트 단계 {request.hint_level}] {level_instructions[request.hint_level]}"
     )
@@ -90,3 +111,5 @@ def get_hint(request: HintRequest):
         "explanation": result.get("explanation", ""),
         "pseudocode": result.get("pseudocode", ""),
     }
+
+
