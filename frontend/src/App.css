@@ -16,10 +16,40 @@ body {
   background-color: #282c34;
   padding: 20px;
   color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .App-header h1 {
   margin: 0;
+}
+
+.nav-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-tab {
+  background: transparent;
+  color: #aaa;
+  border: 1px solid #555;
+  padding: 6px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.nav-tab:hover {
+  color: white;
+  border-color: #888;
+}
+
+.nav-tab.active {
+  background-color: #61dafb;
+  color: white;
+  border-color: #61dafb;
 }
 
 .main-container {
@@ -61,9 +91,20 @@ body {
   box-sizing: border-box;
 }
 
-.input-field textarea:focus {
+.input-field textarea:focus,
+.input-field input:focus {
   outline: none;
   border-color: #61dafb;
+}
+
+.problem-number-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  box-sizing: border-box;
 }
 
 .code-editor h2, .hint-display h2 {

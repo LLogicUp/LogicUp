@@ -14,6 +14,8 @@ function App() {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
+  const [source, setSource] = useState<'direct' | 'baekjoon' | 'oj'>('direct');
+  const [problemNumber, setProblemNumber] = useState('');
   const [problem, setProblem] = useState('');
   const [expectedOutput, setExpectedOutput] = useState('');
   const [code, setCode] = useState('');
@@ -70,27 +72,64 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>LogicUp</h1>
+        <nav className="nav-tabs">
+          {(['direct', 'baekjoon', 'oj'] as const).map((s) => (
+            <button
+              key={s}
+              className={`nav-tab${source === s ? ' active' : ''}`}
+              onClick={() => {
+                setSource(s);
+                setProblem('');
+                setExpectedOutput('');
+                setProblemNumber('');
+              }}
+            >
+              {s === 'direct' ? '직접 입력' : s === 'baekjoon' ? '백준' : 'OJ'}
+            </button>
+          ))}
+        </nav>
       </header>
       <main className="main-container">
         <div className="code-editor">
-          <div className="input-field">
-            <label>문제 설명</label>
-            <textarea
-              value={problem}
-              onChange={(e) => setProblem(e.target.value)}
-              placeholder="문제를 입력하세요 (선택)"
-              rows={4}
-            />
-          </div>
-          <div className="input-field">
-            <label>정답 예시 출력</label>
-            <textarea
-              value={expectedOutput}
-              onChange={(e) => setExpectedOutput(e.target.value)}
-              placeholder="정답 예시 출력을 입력하세요 (선택)"
-              rows={3}
-            />
-          </div>
+          {source === 'direct' && (
+            <>
+              <div className="input-field">
+                <label>문제 설명</label>
+                <textarea
+                  value={problem}
+                  onChange={(e) => setProblem(e.target.value)}
+                  placeholder="문제를 입력하세요 (선택)"
+                  rows={4}
+                />
+              </div>
+              <div className="input-field">
+                <label>정답 예시 출력</label>
+                <textarea
+                  value={expectedOutput}
+                  onChange={(e) => setExpectedOutput(e.target.value)}
+                  placeholder="정답 예시 출력을 입력하세요 (선택)"
+                  rows={3}
+                />
+              </div>
+            </>
+          )}
+          {source === 'baekjoon' && (
+            <div className="input-field">
+              <label>백준 문제 번호</label>
+              <input
+                type="text"
+                className="problem-number-input"
+                value={problemNumber}
+                onChange={(e) => setProblemNumber(e.target.value)}
+                placeholder="문제 번호를 입력하세요 (예: 1000)"
+              />
+            </div>
+          )}
+          {source === 'oj' && (
+            <div className="input-field">
+              <p className="hint-placeholder">준비 중입니다.</p>
+            </div>
+          )}
           <h2>Code Input</h2>
           <Editor
             height="400px"
