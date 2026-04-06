@@ -192,10 +192,54 @@ body {
   border-top: 1px solid var(--border-color);
 }
 
-.hint-markdown p {
-  margin: 4px 0;
+/* 마크다운 기본 스타일 */
+.hint-markdown {
+  line-height: 1.7;
 }
 
+.hint-markdown p {
+  margin: 8px 0;
+}
+
+.hint-markdown strong {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.hint-markdown em {
+  font-style: italic;
+}
+
+.hint-markdown h3 {
+  font-size: 1.1em;
+  margin: 12px 0 6px;
+}
+
+.hint-markdown h4 {
+  font-size: 1em;
+  margin: 10px 0 4px;
+}
+
+.hint-markdown blockquote {
+  border-left: 3px solid var(--accent);
+  background-color: var(--bg-hint);
+  margin: 8px 0;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+.hint-markdown a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.hint-markdown hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 12px 0;
+}
+
+/* 인라인 코드 */
 .hint-markdown code {
   background-color: var(--input-bg);
   padding: 2px 6px;
@@ -203,6 +247,7 @@ body {
   font-size: 0.9em;
 }
 
+/* 코드 블록 */
 .hint-markdown pre {
   background-color: var(--input-bg);
   padding: 12px;
@@ -218,7 +263,24 @@ body {
 .hint-markdown ul,
 .hint-markdown ol {
   padding-left: 20px;
+  margin: 8px 0;
+}
+
+.hint-markdown li {
   margin: 4px 0;
+}
+
+/* 의사코드 블록 */
+.pseudocode-block {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  white-space: pre;
+  line-height: 1.6;
+  font-size: 0.9em;
 }
 
 .hint-placeholder {

@@ -1,4 +1,7 @@
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
+import 'highlight.js/styles/github-dark.css';
 
 export interface Hint {
   level: number;
@@ -20,14 +23,14 @@ function HintPanel({ hints }: HintPanelProps) {
             <div key={hint.level} className="hint-item">
               <span className="hint-level-badge">{hint.level}단계 힌트</span>
               <div className="hint-markdown">
-                <ReactMarkdown>{hint.explanation}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
+                  {hint.explanation}
+                </ReactMarkdown>
               </div>
               {hint.pseudocode && (
                 <div className="hint-pseudocode">
                   <h3>의사코드</h3>
-                  <div className="hint-markdown">
-                    <ReactMarkdown>{hint.pseudocode}</ReactMarkdown>
-                  </div>
+                  <pre className="pseudocode-block">{hint.pseudocode.replaceAll('\\n', '\n')}</pre>
                 </div>
               )}
             </div>
