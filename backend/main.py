@@ -7,6 +7,7 @@ import json
 import logging
 from logging.handlers import TimedRotatingFileHandler
 from dotenv import load_dotenv
+from boj import fetch_boj_problem
 
 load_dotenv()
 
@@ -35,11 +36,13 @@ app.add_middleware(
 )
 
 class HintRequest(BaseModel):
-    problem: str = ""        # 문제 설명 -> ""로 생략 가능
-    code: str                # 사용자 코드
-    expected_output: str = "" # 정답 예시 출력 -> ""로 생략 가능
-    error_log: str = ""      # 에러 메시지
-    hint_level: int = 1      # 1: 오류 위치, 2: 관련 개념, 3: 의사코드
+    problem: str = ""           # 문제 설명 -> ""로 생략 가능
+    problem_number: int = 0     # BOJ 문제 번호
+    code: str                   # 사용자 코드
+    expected_output: str = ""   # 정답 예시 출력 -> ""로 생략 가능
+    expected_input: str=""      # 정답 예시 입력 -> ""로 생략 가능
+    error_log: str = ""         # 에러 메시지
+    hint_level: int = 1         # 1: 오류 위치, 2: 관련 개념, 3: 의사코드
 
 
 @app.get("/health")
@@ -48,6 +51,16 @@ def health_check():
 
 @app.post("/hint")
 def get_hint(request: HintRequest):
+    if request.problem_number:
+        boj = fetch_boj_problem(request.problem_number)
+        problem = boj.get("problem", "")
+        expected_input = boj.get("expected_input", "")
+        expected_output = boj.get("expected_output", "")
+    else:
+        problem = request.problem
+        expected_input = request.expected_input
+        expected_output = request.expected_output
+
     level_instructions = {  #레벨별 힌트 프롬프트
         1: (
             "코드에서 오류가 발생한 위치의 줄과 오류 원인만 알려주세요. "
@@ -72,8 +85,9 @@ def get_hint(request: HintRequest):
     }
 
     prompt = (
-        f"[문제]\n{request.problem}\n\n"
-        f"[정답 예시 출력]\n{request.expected_output}\n\n"
+        f"[문제]\n{problem}\n\n"
+        f"[예시 입력]\n{expected_input}\n\n"
+        f"[예시 출력]\n{expected_output}\n\n"
         f"[사용자 코드]\n{request.code}\n\n"
         f"[에러 로그]\n{request.error_log}\n\n"
         f"[힌트 단계 {request.hint_level}] {level_instructions[request.hint_level]}"
@@ -105,12 +119,10 @@ def get_hint(request: HintRequest):
             {"role": "user", "content": prompt},
         ],
     )
-    #ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ
     result = json.loads(response.choices[0].message.content)
     logger.info(f"힌트 응답 완료 | level={request.hint_level}")
     return {
         "explanation": result.get("explanation", ""),
         "pseudocode": result.get("pseudocode", ""),
     }
-#test
 
