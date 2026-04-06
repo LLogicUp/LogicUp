@@ -3,9 +3,11 @@ import type { Source } from './Header';
 interface ProblemInputProps {
   source: Source;
   problem: string;
+  expectedInput: string;
   expectedOutput: string;
   problemNumber: string;
   onProblemChange: (value: string) => void;
+  onExpectedInputChange: (value: string) => void;
   onExpectedOutputChange: (value: string) => void;
   onProblemNumberChange: (value: string) => void;
 }
@@ -13,9 +15,11 @@ interface ProblemInputProps {
 function ProblemInput({
   source,
   problem,
+  expectedInput,
   expectedOutput,
   problemNumber,
   onProblemChange,
+  onExpectedInputChange,
   onExpectedOutputChange,
   onProblemNumberChange,
 }: ProblemInputProps) {
@@ -31,14 +35,25 @@ function ProblemInput({
             rows={4}
           />
         </div>
-        <div className="input-field">
-          <label>정답 예시 출력</label>
-          <textarea
-            value={expectedOutput}
-            onChange={(e) => onExpectedOutputChange(e.target.value)}
-            placeholder="정답 예시 출력을 입력하세요 (선택)"
-            rows={3}
-          />
+        <div className="example-row">
+          <div className="input-field">
+            <label>입력 예시</label>
+            <textarea
+              value={expectedInput}
+              onChange={(e) => onExpectedInputChange(e.target.value)}
+              placeholder="입력 예시 (선택)"
+              rows={3}
+            />
+          </div>
+          <div className="input-field">
+            <label>출력 예시</label>
+            <textarea
+              value={expectedOutput}
+              onChange={(e) => onExpectedOutputChange(e.target.value)}
+              placeholder="출력 예시 (선택)"
+              rows={3}
+            />
+          </div>
         </div>
       </>
     );
