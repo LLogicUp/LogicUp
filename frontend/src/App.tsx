@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
-import Editor from '@monaco-editor/react';
+import Header, { type Source } from './components/Header';
+import ProblemInput from './components/ProblemInput';
+import CodeEditor from './components/CodeEditor';
+import HintPanel, { type Hint } from './components/HintPanel';
 import './App.css';
 
 function App() {
@@ -14,11 +17,21 @@ function App() {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
-  const [code, setCode] = useState<string>('');
-  const [explanation, setExplanation] = useState<string>('');
-  const [pseudocode, setPseudocode] = useState<string>('');
-  const [hintLevel, setHintLevel] = useState<number>(1);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [source, setSource] = useState<Source>('direct');
+  const [problemNumber, setProblemNumber] = useState('');
+  const [problem, setProblem] = useState('');
+  const [expectedOutput, setExpectedOutput] = useState('');
+  const [code, setCode] = useState('');
+  const [hints, setHints] = useState<Hint[]>([]);
+  const [hintLevel, setHintLevel] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const handleSourceChange = (newSource: Source) => {
+    setSource(newSource);
+    setProblem('');
+    setExpectedOutput('');
+    setProblemNumber('');
+  };
 
   const requestHint = async () => {
     if (!code.trim()) return;
@@ -27,18 +40,45 @@ function App() {
       const res = await fetch('http://localhost:8000/hint', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, error_log: '', hint_level: hintLevel }),
+        body: JSON.stringify({
+          problem,
+          code,
+          expected_output: expectedOutput,
+          error_log: '',
+          hint_level: hintLevel,
+        }),
       });
       const data = await res.json();
-      setExplanation(data.explanation ?? '');
-      setPseudocode(data.pseudocode ?? '');
+      setHints((prev) => [
+        ...prev,
+        {
+          level: hintLevel,
+          explanation: data.explanation ?? '',
+          pseudocode: data.pseudocode ?? '',
+        },
+      ]);
       if (hintLevel < 4) setHintLevel(hintLevel + 1);
     } catch {
-      setExplanation('서버에 연결할 수 없습니다. 백엔드가 실행 중인지 확인하세요.');
-      setPseudocode('');
+      setHints((prev) => [
+        ...prev,
+        {
+          level: hintLevel,
+          explanation: '서버에 연결할 수 없습니다. 백엔드가 실행 중인지 확인하세요.',
+          pseudocode: '',
+        },
+      ]);
     } finally {
       setLoading(false);
     }
+  };
+
+  const resetAll = () => {
+    setProblem('');
+    setExpectedOutput('');
+    setProblemNumber('');
+    setCode('');
+    setHints([]);
+    setHintLevel(1);
   };
 
   const getButtonLabel = () => {
@@ -48,45 +88,26 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>LogicUp</h1>
-      </header>
+    <div className={`App${isDark ? ' dark' : ''}`}>
+      <Header source={source} onSourceChange={handleSourceChange} />
       <main className="main-container">
         <div className="code-editor">
-          <h2>Code Input</h2>
-          <Editor
-            height="400px"
-            defaultLanguage="c"
-            value={code}
-            onChange={(value) => setCode(value ?? '')}
-            theme={isDark ? 'vs-dark' : 'light'}
-            options={{
-              minimap: { enabled: false },
-              fontSize: 14,
-              scrollBeyondLastLine: false,
-            }}
+          <ProblemInput
+            source={source}
+            problem={problem}
+            expectedOutput={expectedOutput}
+            problemNumber={problemNumber}
+            onProblemChange={setProblem}
+            onExpectedOutputChange={setExpectedOutput}
+            onProblemNumberChange={setProblemNumber}
+          />
+          <CodeEditor
+            code={code}
+            isDark={isDark}
+            onCodeChange={setCode}
           />
         </div>
-        <div className="hint-display">
-          <h2>Hint</h2>
-          <div className="hint-content">
-            {explanation ? (
-              <>
-                <span className="hint-level-badge">{hintLevel - 1}단계 힌트</span>
-                <p>{explanation}</p>
-                {pseudocode && (
-                  <div className="hint-pseudocode">
-                    <h3>의사코드</h3>
-                    <pre>{pseudocode}</pre>
-                  </div>
-                )}
-              </>
-            ) : (
-              <p className="hint-placeholder">코드를 입력하고 힌트를 요청하세요.</p>
-            )}
-          </div>
-        </div>
+        <HintPanel hints={hints} />
       </main>
       <footer className="App-footer">
         <button
@@ -94,6 +115,13 @@ function App() {
           disabled={loading || hintLevel > 3}
         >
           {getButtonLabel()}
+        </button>
+        <button
+          className="reset-button"
+          onClick={resetAll}
+          disabled={loading}
+        >
+          Reset
         </button>
       </footer>
     </div>
