@@ -52,7 +52,7 @@ def health_check():
 @app.post("/hint")
 def get_hint(request: HintRequest):
     if request.problem_number:
-        boj = fetch_boj_problem(request.problem_number)
+        boj = fetch_boj_problem(request.problem_number) #크롤링 이후 딕셔너리 반환
         problem = boj.get("problem", "")
         expected_input = boj.get("expected_input", "")
         expected_output = boj.get("expected_output", "")
@@ -85,9 +85,9 @@ def get_hint(request: HintRequest):
     }
 
     prompt = (
-        f"[문제]\n{problem}\n\n"
-        f"[예시 입력]\n{expected_input}\n\n"
-        f"[예시 출력]\n{expected_output}\n\n"
+        f"[문제]\n{problem}\n\n" #문제, 예시 , 출력 모두 로컬 변수로 변환 (BOJ 크롤링)
+        f"[정답 예시 입력]\n{expected_input}\n\n"
+        f"[정답 예시 출력]\n{expected_output}\n\n"
         f"[사용자 코드]\n{request.code}\n\n"
         f"[에러 로그]\n{request.error_log}\n\n"
         f"[힌트 단계 {request.hint_level}] {level_instructions[request.hint_level]}"
