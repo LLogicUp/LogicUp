@@ -105,12 +105,12 @@ def get_hint(request: HintRequest):
             {"role": "user", "content": prompt},
         ],
     )
-
+    #ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ
     result = json.loads(response.choices[0].message.content)
     logger.info(f"힌트 응답 완료 | level={request.hint_level}")
     return {
         "explanation": result.get("explanation", ""),
         "pseudocode": result.get("pseudocode", ""),
     }
-
+#test
 
