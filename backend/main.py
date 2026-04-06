@@ -35,9 +35,9 @@ app.add_middleware(
 )
 
 class HintRequest(BaseModel):
-    problem: str = ""        # 문제 설명
+    problem: str = ""        # 문제 설명 -> ""로 생략 가능
     code: str                # 사용자 코드
-    expected_output: str = "" # 정답 예시 출력
+    expected_output: str = "" # 정답 예시 출력 -> ""로 생략 가능
     error_log: str = ""      # 에러 메시지
     hint_level: int = 1      # 1: 오류 위치, 2: 관련 개념, 3: 의사코드
 
@@ -48,7 +48,7 @@ def health_check():
 
 @app.post("/hint")
 def get_hint(request: HintRequest):
-    level_instructions = {
+    level_instructions = {  #레벨별 힌트 프롬프트
         1: (
             "코드에서 오류가 발생한 위치의 줄과 오류 원인만 알려주세요. "
             "절대 수정 방법이나 정답 코드는 제시하지 마세요. "
@@ -82,10 +82,10 @@ def get_hint(request: HintRequest):
     logger.info(f"힌트 요청 | level={request.hint_level} | code_length={len(request.code)} | error_log={request.error_log[:100]}")
 
     response = client.chat.completions.create(
-        model="openai/gpt-oss-120b",
+        model="openai/gpt-oss-120b", #Groq 응답 모델
         response_format={"type": "json_object"},
         messages=[
-            {
+            {   #시스템 힌트 프롬프트
                 "role": "system",
                 "content": (
                     "당신은 프로그래밍 학습 보조 튜터입니다. "
@@ -99,6 +99,7 @@ def get_hint(request: HintRequest):
                     "7. 오류가 나지 않는다면 오류가 없다고 알려주세요."
                     "8. 반드시 다음 JSON 형식으로만 응답하세요: "
                     '{{"explanation": "현재 단계에 맞는 상세 설명", "pseudocode": "3단계에서만 채우고 1·2단계에서는 반드시 빈 문자열"}}'
+                    "9. 의사코드를 제외한 다른 힌트는 한글로 설명해주세요."
                 ),
             },
             {"role": "user", "content": prompt},
