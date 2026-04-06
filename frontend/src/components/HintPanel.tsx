@@ -1,3 +1,5 @@
+import ReactMarkdown from 'react-markdown';
+
 export interface Hint {
   level: number;
   explanation: string;
@@ -17,11 +19,15 @@ function HintPanel({ hints }: HintPanelProps) {
           hints.map((hint) => (
             <div key={hint.level} className="hint-item">
               <span className="hint-level-badge">{hint.level}단계 힌트</span>
-              <p>{hint.explanation}</p>
+              <div className="hint-markdown">
+                <ReactMarkdown>{hint.explanation}</ReactMarkdown>
+              </div>
               {hint.pseudocode && (
                 <div className="hint-pseudocode">
                   <h3>의사코드</h3>
-                  <pre>{hint.pseudocode}</pre>
+                  <div className="hint-markdown">
+                    <ReactMarkdown>{hint.pseudocode}</ReactMarkdown>
+                  </div>
                 </div>
               )}
             </div>

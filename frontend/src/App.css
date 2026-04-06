@@ -101,6 +101,17 @@ body {
   box-shadow: 0 2px 4px var(--shadow);
 }
 
+.example-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.example-row .input-field {
+  flex: 1;
+  margin-bottom: 0;
+}
+
 .input-field {
   margin-bottom: 16px;
   text-align: left;
@@ -179,6 +190,35 @@ body {
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid var(--border-color);
+}
+
+.hint-markdown p {
+  margin: 4px 0;
+}
+
+.hint-markdown code {
+  background-color: var(--input-bg);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.hint-markdown pre {
+  background-color: var(--input-bg);
+  padding: 12px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.hint-markdown pre code {
+  padding: 0;
+  background: none;
+}
+
+.hint-markdown ul,
+.hint-markdown ol {
+  padding-left: 20px;
+  margin: 4px 0;
 }
 
 .hint-placeholder {

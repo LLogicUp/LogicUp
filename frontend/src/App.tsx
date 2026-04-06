@@ -20,6 +20,7 @@ function App() {
   const [source, setSource] = useState<Source>('direct');
   const [problemNumber, setProblemNumber] = useState('');
   const [problem, setProblem] = useState('');
+  const [expectedInput, setExpectedInput] = useState('');
   const [expectedOutput, setExpectedOutput] = useState('');
   const [code, setCode] = useState('');
   const [hints, setHints] = useState<Hint[]>([]);
@@ -29,6 +30,7 @@ function App() {
   const handleSourceChange = (newSource: Source) => {
     setSource(newSource);
     setProblem('');
+    setExpectedInput('');
     setExpectedOutput('');
     setProblemNumber('');
   };
@@ -41,9 +43,10 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          problem,
+          ...(source === 'baekjoon'
+            ? { problem_number: parseInt(problemNumber) || 0 }
+            : { problem, expected_input: expectedInput, expected_output: expectedOutput }),
           code,
-          expected_output: expectedOutput,
           error_log: '',
           hint_level: hintLevel,
         }),
@@ -74,6 +77,7 @@ function App() {
 
   const resetAll = () => {
     setProblem('');
+    setExpectedInput('');
     setExpectedOutput('');
     setProblemNumber('');
     setCode('');
@@ -95,9 +99,11 @@ function App() {
           <ProblemInput
             source={source}
             problem={problem}
+            expectedInput={expectedInput}
             expectedOutput={expectedOutput}
             problemNumber={problemNumber}
             onProblemChange={setProblem}
+            onExpectedInputChange={setExpectedInput}
             onExpectedOutputChange={setExpectedOutput}
             onProblemNumberChange={setProblemNumber}
           />
