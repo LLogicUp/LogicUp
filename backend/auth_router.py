@@ -2,7 +2,7 @@ import os
 import re
 import requests
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, field_validator
 from sqlalchemy.orm import Session
 from config import logger
 from database import get_db
@@ -19,19 +19,23 @@ auth_router = APIRouter()
 
 
 class RegisterRequest(BaseModel):
-    userid: str = Field(min_length=2, max_length=20)
-    password: str = Field(min_length=8, max_length=16)
+    userid: str
+    password: str
 
-    @field_validator("userid") #아이디 생성 규칙
+    @field_validator("userid")
     @classmethod
     def userid_alphanumeric(cls, v):
+        if not (2 <= len(v) <= 20):
+            raise ValueError("아이디는 2~20자로 입력해주세요.")
         if not re.match(r"^[a-zA-Z0-9]+$", v):
             raise ValueError("아이디는 영어와 숫자만 사용할 수 있습니다.")
         return v
 
-    @field_validator("password") #비밀번호 생성 규칙
+    @field_validator("password")
     @classmethod
     def password_complexity(cls, v):
+        if not (8 <= len(v) <= 16):
+            raise ValueError("비밀번호는 8~16자로 입력해주세요.")
         if not re.match(r"^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{}|;:\'\",./<>?~`]+$", v):
             raise ValueError("비밀번호는 영어, 숫자, 특수문자만 사용할 수 있습니다.")
         if not re.search(r"[a-zA-Z]", v):
