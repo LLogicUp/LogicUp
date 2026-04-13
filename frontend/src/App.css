@@ -321,3 +321,135 @@ body {
 .reset-button:hover:not(:disabled) {
   background-color: #666 !important;
 }
+
+/* Header controls */
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 4px;
+  border-left: 1px solid rgba(255,255,255,0.2);
+  padding-left: 16px;
+}
+
+/* History page */
+.history-page {
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.history-status {
+  padding: 48px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.history-error {
+  color: #e74c3c;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.history-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 4px var(--shadow);
+}
+
+.history-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.history-source {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.history-level {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: var(--bg-hint);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-hint);
+}
+
+.history-date {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-left: auto;
+}
+
+.history-code {
+  background: var(--bg-hint);
+  border: 1px solid var(--border-hint);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-size: 13px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0 0 12px;
+  color: var(--text-primary);
+}
+
+.history-explanation {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin: 0 0 8px;
+}
+
+.history-pseudocode {
+  background: var(--bg-hint);
+  border-left: 3px solid var(--accent);
+  padding: 10px 12px;
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.history-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.history-pagination button {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.history-pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.history-pagination span {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
