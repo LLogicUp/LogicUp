@@ -1,9 +1,14 @@
 import os
 import logging
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 logger = logging.getLogger("logicup")
+
+# Always load backend/.env before resolving DATABASE_URL so local runs
+# behave consistently even when the shell has no exported env vars.
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL:
