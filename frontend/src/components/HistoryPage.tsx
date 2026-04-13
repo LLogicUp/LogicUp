@@ -1,10 +1,38 @@
-import { useState, useEffect } from 'react';
-import { fetchHistory, UnauthorizedError, type HistoryItem } from '../api/history';
+import { useState, useEffect, useCallback } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
+import {
+  fetchHistory,
+  fetchProblemList,
+  fetchDirectProblemList,
+  UnauthorizedError,
+  type HistoryItem,
+  type ProblemSummary,
+  type DirectProblemSummary,
+} from '../api/history';
+
+type HistoryTab = 'all' | 'baekjoon' | 'direct';
+
+type DrillDown =
+  | { kind: 'problem'; problemId: string; label: string }
+  | { kind: 'direct'; problemText: string; label: string };
+
+// 탭 공통 카드 타입
+type GroupedCard =
+  | { kind: 'problem'; data: ProblemSummary }
+  | { kind: 'direct'; data: DirectProblemSummary };
 
 const HINT_LEVEL_LABEL: Record<number, string> = {
   1: '오류 위치',
   2: '관련 개념',
   3: '의사코드',
+};
+
+const TAB_LABELS: Record<HistoryTab, string> = {
+  all: '전체',
+  baekjoon: '백준',
+  direct: '직접 입력',
 };
 
 function formatDate(iso: string): string {
@@ -17,14 +45,13 @@ function formatDate(iso: string): string {
   });
 }
 
-function sourceLabel(item: HistoryItem): string {
-  if (item.source === 'baekjoon' && item.external_problem_id) {
-    return `백준 ${item.external_problem_id}번`;
-  }
-  if (item.source === 'oj' && item.external_problem_id) {
-    return `OJ ${item.external_problem_id}`;
-  }
-  return '직접 입력';
+function cardLabel(card: GroupedCard): string {
+  if (card.kind === 'problem') return `백준 ${card.data.external_problem_id}번`;
+  return card.data.problem_snippet || '직접 입력';
+}
+
+function cardDate(card: GroupedCard): string {
+  return card.data.last_hint_at;
 }
 
 interface HistoryPageProps {
@@ -32,68 +59,211 @@ interface HistoryPageProps {
 }
 
 function HistoryPage({ onLogout }: HistoryPageProps) {
+  const [activeTab, setActiveTab] = useState<HistoryTab>('all');
+  const [drillDown, setDrillDown] = useState<DrillDown | null>(null);
+
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const [allList, setAllList] = useState<GroupedCard[]>([]);
+  const [problemList, setProblemList] = useState<ProblemSummary[]>([]);
+  const [directList, setDirectList] = useState<DirectProblemSummary[]>([]);
+  const [listLoading, setListLoading] = useState(false);
+
   const limit = 10;
 
+  const handleUnauthorized = useCallback(() => onLogout(), [onLogout]);
+
+  // 탭 변경 시 상태 리셋
   useEffect(() => {
+    setPage(1);
+    setDrillDown(null);
+    setItems([]);
+    setError('');
+  }, [activeTab]);
+
+  // 드릴다운 없을 때 → 목록 로드
+  useEffect(() => {
+    if (drillDown !== null) return;
+
+    setListLoading(true);
+
+    let load: Promise<void>;
+
+    if (activeTab === 'all') {
+      load = Promise.all([fetchProblemList(), fetchDirectProblemList()])
+        .then(([problems, directs]) => {
+          const combined: GroupedCard[] = [
+            ...problems.items.map((p): GroupedCard => ({ kind: 'problem', data: p })),
+            ...directs.items.map((d): GroupedCard => ({ kind: 'direct', data: d })),
+          ];
+          combined.sort(
+            (a, b) => new Date(cardDate(b)).getTime() - new Date(cardDate(a)).getTime()
+          );
+          setAllList(combined);
+        });
+    } else if (activeTab === 'baekjoon') {
+      load = fetchProblemList().then((d) => setProblemList(d.items));
+    } else {
+      load = fetchDirectProblemList().then((d) => setDirectList(d.items));
+    }
+
+    load
+      .catch((err) => { if (err instanceof UnauthorizedError) handleUnauthorized(); })
+      .finally(() => setListLoading(false));
+  }, [activeTab, drillDown, handleUnauthorized]);
+
+  // 드릴다운 선택 시 → 힌트 목록 로드
+  useEffect(() => {
+    if (drillDown === null) return;
+
     setLoading(true);
     setError('');
-    fetchHistory(page, limit)
+
+    const params =
+      drillDown.kind === 'problem'
+        ? { page, limit, source: 'baekjoon' as const, problem_id: drillDown.problemId }
+        : { page, limit, source: 'direct' as const, problem_text: drillDown.problemText };
+
+    fetchHistory(params)
       .then((data) => {
         setItems(data.items);
         setTotal(data.total);
       })
       .catch((err) => {
-        if (err instanceof UnauthorizedError) {
-          onLogout();
-        } else {
-          setError('히스토리를 불러오지 못했습니다.');
-        }
+        if (err instanceof UnauthorizedError) handleUnauthorized();
+        else setError('히스토리를 불러오지 못했습니다.');
       })
       .finally(() => setLoading(false));
-  }, [page, onLogout]);
+  }, [drillDown, page, handleUnauthorized]);
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
-  if (loading) return <div className="history-status">불러오는 중...</div>;
-  if (error) return <div className="history-status history-error">{error}</div>;
-  if (items.length === 0) return <div className="history-status">저장된 힌트 이력이 없습니다.</div>;
+  const handleCardClick = (card: GroupedCard) => {
+    if (card.kind === 'problem') {
+      setDrillDown({
+        kind: 'problem',
+        problemId: card.data.external_problem_id,
+        label: `백준 ${card.data.external_problem_id}번`,
+      });
+    } else {
+      setDrillDown({
+        kind: 'direct',
+        problemText: card.data.problem,
+        label: card.data.problem_snippet || '직접 입력',
+      });
+    }
+  };
+
+  const renderTabs = () => (
+    <div className="history-tabs">
+      {(Object.keys(TAB_LABELS) as HistoryTab[]).map((tab) => (
+        <button
+          key={tab}
+          className={`history-tab${activeTab === tab ? ' active' : ''}`}
+          onClick={() => setActiveTab(tab)}
+        >
+          {TAB_LABELS[tab]}
+        </button>
+      ))}
+    </div>
+  );
+
+  const renderCardList = (cards: GroupedCard[], emptyMsg: string) => {
+    if (listLoading) return <div className="history-status">불러오는 중...</div>;
+    if (cards.length === 0) return <div className="history-status">{emptyMsg}</div>;
+    return (
+      <div className="problem-list">
+        {cards.map((card, i) => (
+          <button
+            key={card.kind === 'problem' ? `p-${card.data.external_problem_id}` : `d-${i}-${card.data.last_hint_at}`}
+            className="problem-card"
+            onClick={() => handleCardClick(card)}
+          >
+            <span className="problem-number">{cardLabel(card)}</span>
+            <span className="problem-hint-count">힌트 {card.data.hint_count}회</span>
+            <span className="problem-last-date">{formatDate(cardDate(card))}</span>
+          </button>
+        ))}
+      </div>
+    );
+  };
+
+  const renderHintList = () => {
+    if (loading) return <div className="history-status">불러오는 중...</div>;
+    if (error) return <div className="history-status history-error">{error}</div>;
+    if (items.length === 0) return <div className="history-status">힌트 기록이 없습니다.</div>;
+
+    return (
+      <>
+        <div className="history-list">
+          {items.map((item) => (
+            <div key={item.hint_id} className="history-card">
+              <div className="history-card-header">
+                <span className="history-level">{HINT_LEVEL_LABEL[item.hint_level] ?? `레벨 ${item.hint_level}`}</span>
+                <span className="history-date">{formatDate(item.created_at)}</span>
+              </div>
+              {item.code_snippet && (
+                <pre className="history-code">{item.code_snippet}{item.code_snippet.length >= 200 ? '...' : ''}</pre>
+              )}
+              {item.explanation && (
+                <div className="history-explanation">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
+                    {item.explanation}
+                  </ReactMarkdown>
+                </div>
+              )}
+              {item.pseudocode && (
+                <div className="history-pseudocode">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
+                    {item.pseudocode}
+                  </ReactMarkdown>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="history-pagination">
+          <button onClick={() => setPage((p) => p - 1)} disabled={page <= 1}>이전</button>
+          <span>{page} / {totalPages}</span>
+          <button onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages}>다음</button>
+        </div>
+      </>
+    );
+  };
+
+  const renderList = () => {
+    if (activeTab === 'all') {
+      return renderCardList(allList, '저장된 힌트 이력이 없습니다.');
+    }
+    if (activeTab === 'baekjoon') {
+      return renderCardList(
+        problemList.map((p): GroupedCard => ({ kind: 'problem', data: p })),
+        '백준 문제 기록이 없습니다.',
+      );
+    }
+    return renderCardList(
+      directList.map((d): GroupedCard => ({ kind: 'direct', data: d })),
+      '직접 입력 기록이 없습니다.',
+    );
+  };
 
   return (
     <div className="history-page">
-      <div className="history-list">
-        {items.map((item) => (
-          <div key={item.hint_id} className="history-card">
-            <div className="history-card-header">
-              <span className="history-source">{sourceLabel(item)}</span>
-              <span className="history-level">{HINT_LEVEL_LABEL[item.hint_level] ?? `레벨 ${item.hint_level}`}</span>
-              <span className="history-date">{formatDate(item.created_at)}</span>
-            </div>
-            {item.code_snippet && (
-              <pre className="history-code">{item.code_snippet}{item.code_snippet.length >= 200 ? '...' : ''}</pre>
-            )}
-            {item.explanation && (
-              <p className="history-explanation">{item.explanation}</p>
-            )}
-            {item.pseudocode && (
-              <pre className="history-pseudocode">{item.pseudocode}</pre>
-            )}
-          </div>
-        ))}
-      </div>
-      <div className="history-pagination">
-        <button onClick={() => setPage((p) => p - 1)} disabled={page <= 1}>
-          이전
-        </button>
-        <span>{page} / {totalPages}</span>
-        <button onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages}>
-          다음
-        </button>
-      </div>
+      {renderTabs()}
+      {drillDown === null ? (
+        renderList()
+      ) : (
+        <>
+          <button className="history-back-btn" onClick={() => { setDrillDown(null); setPage(1); }}>
+            ← {drillDown.label} 목록으로
+          </button>
+          {renderHintList()}
+        </>
+      )}
     </div>
   );
 }
