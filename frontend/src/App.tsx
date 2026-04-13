@@ -34,27 +34,27 @@ function App() {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
+  const [token, setToken] = useState<string | null>(() => getToken());
+  const [userid, setUserid] = useState<string>(() => getUserid());
+  const [kakaoError, setKakaoError] = useState('');
+
   // 카카오 로그인 콜백 처리
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
     if (code) {
+      window.history.replaceState({}, document.title, '/');
       kakaoLogin(code)
         .then(() => {
-          window.history.replaceState({}, document.title, window.location.pathname);
-          const t = getToken();
-          setToken(t);
+          setToken(getToken());
           setUserid(getUserid());
         })
-        .catch((err) => {
-          console.error('카카오 로그인 실패:', err);
-          window.history.replaceState({}, document.title, window.location.pathname);
+        .catch((err: Error) => {
+          setKakaoError(err.message || '카카오 로그인에 실패했습니다.');
         });
     }
   }, []);
 
-  const [token, setToken] = useState<string | null>(() => getToken());
-  const [userid, setUserid] = useState<string>(() => getUserid());
   const [viewMode, setViewMode] = useState<ViewMode>('editor');
   const [source, setSource] = useState<Source>('direct');
   const [problemNumber, setProblemNumber] = useState('');
@@ -148,7 +148,7 @@ function App() {
   };
 
   if (!token) {
-    return <AuthPanel onLogin={handleLogin} />;
+    return <AuthPanel onLogin={handleLogin} initialError={kakaoError} />;
   }
 
   return (

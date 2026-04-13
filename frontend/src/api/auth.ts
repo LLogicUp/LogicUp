@@ -66,9 +66,3 @@ export async function kakaoLogin(code: string): Promise<void> {
   setToken(data.access_token);
 }
 
-export function initKakao(clientId: string): void {
-  const kakao = (window as any).Kakao;
-  if (kakao && !kakao.isInitialized()) {
-    kakao.init(clientId);
-  }
-}

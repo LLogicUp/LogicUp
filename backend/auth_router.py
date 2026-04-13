@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY")
+KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET")
 KAKAO_REDIRECT_URI = os.getenv("KAKAO_REDIRECT_URI")
 
 auth_router = APIRouter()
@@ -95,16 +96,21 @@ def kakao_login(request: KakaoLoginRequest, db: Session = Depends(get_db)):
     logger.info("카카오 로그인 요청")
 
     # 1. 인가 코드로 카카오 액세스 토큰 요청
-    token_res = requests.post("https://kauth.kakao.com/oauth/token", data={
+    token_data = {
         "grant_type": "authorization_code",
         "client_id": KAKAO_REST_API_KEY,
         "redirect_uri": KAKAO_REDIRECT_URI,
         "code": request.code,
-    })
+    }
+    if KAKAO_CLIENT_SECRET:
+        token_data["client_secret"] = KAKAO_CLIENT_SECRET
+
+    logger.info(f"카카오 토큰 요청 | client_id={KAKAO_REST_API_KEY} | redirect_uri={KAKAO_REDIRECT_URI} | code_len={len(request.code)}")
+    token_res = requests.post("https://kauth.kakao.com/oauth/token", data=token_data)
 
     if token_res.status_code != 200:
-        logger.warning(f"카카오 토큰 요청 실패 | status={token_res.status_code}")
-        raise HTTPException(status_code=401, detail="카카오 인증에 실패했습니다")
+        logger.warning(f"카카오 토큰 요청 실패 | status={token_res.status_code} | body={token_res.text}")
+        raise HTTPException(status_code=401, detail=f"카카오 인증에 실패했습니다: {token_res.json().get('error_code', '')} {token_res.json().get('error_description', '')}")
 
     kakao_token = token_res.json().get("access_token")
 

@@ -1,22 +1,23 @@
 import { useState, useEffect } from 'react';
-import { login, register, kakaoLogin, initKakao } from '../api/auth';
+import { login, register } from '../api/auth';
 
 interface AuthPanelProps {
   onLogin: () => void;
+  initialError?: string;
 }
 
 type Mode = 'login' | 'register';
 
-function AuthPanel({ onLogin }: AuthPanelProps) {
+function AuthPanel({ onLogin, initialError = '' }: AuthPanelProps) {
   const [mode, setMode] = useState<Mode>('login');
   const [userid, setUserid] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(initialError);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    initKakao(process.env.REACT_APP_KAKAO_CLIENT_ID || '');
-  }, []);
+    if (initialError) setError(initialError);
+  }, [initialError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,15 +39,14 @@ function AuthPanel({ onLogin }: AuthPanelProps) {
   };
 
   const handleKakaoLogin = () => {
-    setError('');
-    const kakao = (window as any).Kakao;
-    if (!kakao) {
-      setError('카카오 SDK를 로드할 수 없습니다. 잠시 후 다시 시도해주세요.');
+    const restApiKey = process.env.REACT_APP_KAKAO_REST_API_KEY;
+    const redirectUri = process.env.REACT_APP_KAKAO_REDIRECT_URI;
+    if (!restApiKey || !redirectUri) {
+      setError('카카오 로그인 설정이 올바르지 않습니다.');
       return;
     }
-    kakao.Auth.authorize({
-      redirectUri: process.env.REACT_APP_KAKAO_REDIRECT_URI,
-    });
+    const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${restApiKey}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code`;
+    window.location.href = kakaoAuthUrl;
   };
 
   return (
