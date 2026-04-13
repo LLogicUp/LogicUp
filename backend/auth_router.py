@@ -1,11 +1,19 @@
+import os
+import re
+import requests
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
-import re
 from sqlalchemy.orm import Session
 from config import logger
 from database import get_db
 from db_models import User
 from auth import hash_password, verify_password, create_token
+from dotenv import load_dotenv
+
+load_dotenv()
+
+KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY")
+KAKAO_REDIRECT_URI = os.getenv("KAKAO_REDIRECT_URI")
 
 auth_router = APIRouter()
 
@@ -71,4 +79,54 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     token = create_token({"user_id": user.id})
 
     logger.info(f"로그인 성공 | userid={request.userid}")
+    return {"access_token": token}
+
+
+class KakaoLoginRequest(BaseModel):
+    code: str  # 프론트에서 받은 카카오 인가 코드
+
+
+@auth_router.post("/auth/kakao")
+def kakao_login(request: KakaoLoginRequest, db: Session = Depends(get_db)):
+    logger.info("카카오 로그인 요청")
+
+    # 1. 인가 코드로 카카오 액세스 토큰 요청
+    token_res = requests.post("https://kauth.kakao.com/oauth/token", data={
+        "grant_type": "authorization_code",
+        "client_id": KAKAO_REST_API_KEY,
+        "redirect_uri": KAKAO_REDIRECT_URI,
+        "code": request.code,
+    })
+
+    if token_res.status_code != 200:
+        logger.warning(f"카카오 토큰 요청 실패 | status={token_res.status_code}")
+        raise HTTPException(status_code=401, detail="카카오 인증에 실패했습니다")
+
+    kakao_token = token_res.json().get("access_token")
+
+    # 2. 액세스 토큰으로 카카오 사용자 정보 요청
+    user_res = requests.get("https://kapi.kakao.com/v2/user/me", headers={
+        "Authorization": f"Bearer {kakao_token}"
+    })
+
+    if user_res.status_code != 200:
+        logger.warning(f"카카오 사용자 정보 요청 실패 | status={user_res.status_code}")
+        raise HTTPException(status_code=401, detail="카카오 사용자 정보를 가져올 수 없습니다")
+
+    kakao_id = str(user_res.json().get("id"))
+    logger.info(f"카카오 사용자 확인 | kakao_id={kakao_id}")
+
+    # 3. DB에서 카카오 유저 조회, 없으면 자동 회원가입
+    user = db.query(User).filter(User.kakao_id == kakao_id).first()
+    if not user:
+        user = User(kakao_id=kakao_id)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        logger.info(f"카카오 자동 회원가입 | kakao_id={kakao_id} | user_id={user.id}")
+
+    # 4. JWT 토큰 발급
+    token = create_token({"user_id": user.id, "kakao_id": kakao_id})
+
+    logger.info(f"카카오 로그인 성공 | kakao_id={kakao_id} | user_id={user.id}")
     return {"access_token": token}
