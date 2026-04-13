@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchHistory, type HistoryItem } from '../api/history';
+import { fetchHistory, UnauthorizedError, type HistoryItem } from '../api/history';
 
 const HINT_LEVEL_LABEL: Record<number, string> = {
   1: '오류 위치',
@@ -27,7 +27,11 @@ function sourceLabel(item: HistoryItem): string {
   return '직접 입력';
 }
 
-function HistoryPage() {
+interface HistoryPageProps {
+  onLogout: () => void;
+}
+
+function HistoryPage({ onLogout }: HistoryPageProps) {
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -43,9 +47,15 @@ function HistoryPage() {
         setItems(data.items);
         setTotal(data.total);
       })
-      .catch(() => setError('히스토리를 불러오지 못했습니다.'))
+      .catch((err) => {
+        if (err instanceof UnauthorizedError) {
+          onLogout();
+        } else {
+          setError('히스토리를 불러오지 못했습니다.');
+        }
+      })
       .finally(() => setLoading(false));
-  }, [page]);
+  }, [page, onLogout]);
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
 

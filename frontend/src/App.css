@@ -453,3 +453,128 @@ body {
   color: var(--text-secondary);
   font-size: 14px;
 }
+
+/* Auth overlay */
+.auth-overlay {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-body, #f0f2f5);
+}
+
+.auth-panel {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 12px;
+  padding: 40px 48px;
+  width: 340px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  text-align: center;
+}
+
+.auth-panel h2 {
+  margin: 0 0 24px;
+  color: var(--text-primary, #333);
+  font-size: 1.8rem;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.auth-tab {
+  background: transparent;
+  color: var(--text-secondary, #aaa);
+  border: 1px solid var(--border-color, #ddd);
+  padding: 8px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.auth-tab.active {
+  background-color: #61dafb;
+  color: white;
+  border-color: #61dafb;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-form input {
+  padding: 10px 14px;
+  border: 1px solid var(--border-input, #ccc);
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: var(--input-bg, #fff);
+  color: var(--text-primary, #333);
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: #61dafb;
+}
+
+.auth-form button[type="submit"] {
+  padding: 10px;
+  background-color: #61dafb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.auth-form button[type="submit"]:hover {
+  background-color: #4fa8c5;
+}
+
+.auth-form button[type="submit"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.auth-error {
+  color: #e74c3c;
+  font-size: 13px;
+  margin: 0;
+}
+
+/* User info in header */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-left: 1px solid rgba(255,255,255,0.2);
+  padding-left: 16px;
+}
+
+.userid {
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.logout-button {
+  background: transparent;
+  color: #aaa;
+  border: 1px solid #555;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.logout-button:hover {
+  color: white;
+  border-color: #888;
+}

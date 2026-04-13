@@ -64,7 +64,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     if not user or not verify_password(request.password, user.password_hash):
         raise HTTPException(status_code=401, detail="아이디 또는 비밀번호가 잘못되었습니다")
 
-    token = create_token({"user_id": user.id})
+    token = create_token({"user_id": user.id, "userid": user.userid})
 
     logger.info(f"로그인 성공 | userid={request.userid}")
     return {"access_token": token}
