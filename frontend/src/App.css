@@ -671,3 +671,51 @@ body {
 .history-back-btn:hover {
   text-decoration: underline;
 }
+
+/* ─── 카카오 로그인 ─── */
+.auth-divider {
+  text-align: center;
+  color: var(--text-secondary, #aaa);
+  font-size: 0.9rem;
+  margin: 20px 0 16px;
+  position: relative;
+}
+
+.auth-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: var(--border-color, #ddd);
+  z-index: 0;
+}
+
+.auth-divider {
+  z-index: 1;
+  background-color: var(--bg-card, #ffffff);
+  padding: 0 8px;
+}
+
+.kakao-login-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #ffe812;
+  color: #381c15;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.kakao-login-btn:hover:not(:disabled) {
+  background-color: #ffd700;
+}
+
+.kakao-login-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

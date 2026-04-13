@@ -5,7 +5,7 @@ import CodeEditor from './components/CodeEditor';
 import HintPanel, { type Hint } from './components/HintPanel';
 import HistoryPage from './components/HistoryPage';
 import AuthPanel from './components/AuthPanel';
-import { getToken, clearToken, authHeaders } from './api/auth';
+import { getToken, clearToken, authHeaders, kakaoLogin } from './api/auth';
 import './App.css';
 
 function getUserid(): string {
@@ -32,6 +32,25 @@ function App() {
     const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  // 카카오 로그인 콜백 처리
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (code) {
+      kakaoLogin(code)
+        .then(() => {
+          window.history.replaceState({}, document.title, window.location.pathname);
+          const t = getToken();
+          setToken(t);
+          setUserid(getUserid());
+        })
+        .catch((err) => {
+          console.error('카카오 로그인 실패:', err);
+          window.history.replaceState({}, document.title, window.location.pathname);
+        });
+    }
   }, []);
 
   const [token, setToken] = useState<string | null>(() => getToken());

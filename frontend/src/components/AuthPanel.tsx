@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { login, register } from '../api/auth';
+import { useState, useEffect } from 'react';
+import { login, register, kakaoLogin, initKakao } from '../api/auth';
 
 interface AuthPanelProps {
   onLogin: () => void;
@@ -13,6 +13,10 @@ function AuthPanel({ onLogin }: AuthPanelProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    initKakao(process.env.REACT_APP_KAKAO_CLIENT_ID || '');
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +35,18 @@ function AuthPanel({ onLogin }: AuthPanelProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleKakaoLogin = () => {
+    setError('');
+    const kakao = (window as any).Kakao;
+    if (!kakao) {
+      setError('카카오 SDK를 로드할 수 없습니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+    kakao.Auth.authorize({
+      redirectUri: process.env.REACT_APP_KAKAO_REDIRECT_URI,
+    });
   };
 
   return (
@@ -71,6 +87,15 @@ function AuthPanel({ onLogin }: AuthPanelProps) {
             {loading ? '처리 중...' : mode === 'login' ? '로그인' : '회원가입'}
           </button>
         </form>
+        <div className="auth-divider">또는</div>
+        <button
+          type="button"
+          className="kakao-login-btn"
+          onClick={handleKakaoLogin}
+          disabled={loading}
+        >
+          카카오로 로그인
+        </button>
       </div>
     </div>
   );

@@ -51,3 +51,24 @@ export async function register(userid: string, password: string): Promise<void> 
     throw new Error(extractErrorMessage(err.detail, '회원가입에 실패했습니다.'));
   }
 }
+
+export async function kakaoLogin(code: string): Promise<void> {
+  const res = await fetch('http://localhost:8000/auth/kakao', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code }),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(extractErrorMessage(err.detail, '카카오 로그인에 실패했습니다.'));
+  }
+  const data = await res.json();
+  setToken(data.access_token);
+}
+
+export function initKakao(clientId: string): void {
+  const kakao = (window as any).Kakao;
+  if (kakao && !kakao.isInitialized()) {
+    kakao.init(clientId);
+  }
+}
