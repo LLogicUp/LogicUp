@@ -43,8 +43,10 @@ class LoginRequest(BaseModel):
 
 @auth_router.post("/register")
 def register(request: RegisterRequest, db: Session = Depends(get_db)):
+    logger.info(f"회원가입 요청 | userid={request.userid}")
     existing = db.query(User).filter(User.userid == request.userid).first()
     if existing:
+        logger.warning(f"회원가입 실패 | 중복 userid={request.userid}")
         raise HTTPException(status_code=400, detail="이미 존재하는 사용자입니다")
 
     user = User(
@@ -60,8 +62,10 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
 
 @auth_router.post("/login")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
+    logger.info(f"로그인 요청 | userid={request.userid}")
     user = db.query(User).filter(User.userid == request.userid).first()
     if not user or not verify_password(request.password, user.password_hash):
+        logger.warning(f"로그인 실패 | userid={request.userid}")
         raise HTTPException(status_code=401, detail="아이디 또는 비밀번호가 잘못되었습니다")
 
     token = create_token({"user_id": user.id})
