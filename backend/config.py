@@ -4,7 +4,7 @@ from logging.handlers import TimedRotatingFileHandler
 from groq import Groq
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 # 로그 설정
 os.makedirs("logs", exist_ok=True)
