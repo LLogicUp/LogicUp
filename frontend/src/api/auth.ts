@@ -17,6 +17,15 @@ export function authHeaders(): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+function extractErrorMessage(detail: unknown, fallback: string): string {
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail) && detail.length > 0) {
+    const msg: string = detail[0].msg ?? fallback;
+    return msg.replace(/^Value error,\s*/, '');
+  }
+  return fallback;
+}
+
 export async function login(userid: string, password: string): Promise<void> {
   const res = await fetch('http://localhost:8000/login', {
     method: 'POST',
@@ -25,7 +34,7 @@ export async function login(userid: string, password: string): Promise<void> {
   });
   if (!res.ok) {
     const err = await res.json();
-    throw new Error(err.detail ?? '로그인에 실패했습니다.');
+    throw new Error(extractErrorMessage(err.detail, '로그인에 실패했습니다.'));
   }
   const data = await res.json();
   setToken(data.access_token);
@@ -39,6 +48,6 @@ export async function register(userid: string, password: string): Promise<void> 
   });
   if (!res.ok) {
     const err = await res.json();
-    throw new Error(err.detail ?? '회원가입에 실패했습니다.');
+    throw new Error(extractErrorMessage(err.detail, '회원가입에 실패했습니다.'));
   }
 }
