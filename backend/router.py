@@ -8,9 +8,9 @@ from prompts import SYSTEM_PROMPT, build_prompt
 from database import get_db
 from db_models import Submission, Hint
 from schemas import HistoryItem, HistoryResponse
+from auth import get_current_user
 
 router = APIRouter()
-
 
 
 @router.get("/health")
@@ -20,8 +20,12 @@ def health_check():
 
 
 @router.post("/hint")
-def get_hint(request: HintRequest, db: Session = Depends(get_db)):
-    logger.info(f"힌트 요청 수신 | level={request.hint_level} | problem_number={request.problem_number} | code_length={len(request.code)}")
+def get_hint(
+    request: HintRequest,
+    current_user_id: int = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    logger.info(f"힌트 요청 수신 | user_id={current_user_id} | level={request.hint_level} | problem_number={request.problem_number} | code_length={len(request.code)}")
 
     if request.problem_number:
         boj = fetch_boj_problem(request.problem_number)
@@ -62,6 +66,7 @@ def get_hint(request: HintRequest, db: Session = Depends(get_db)):
     pseudocode = result.get("pseudocode", "")
 
     submission = Submission(
+        user_id=current_user_id,
         source=source,
         external_problem_id=external_problem_id,
         problem=problem,
@@ -80,20 +85,33 @@ def get_hint(request: HintRequest, db: Session = Depends(get_db)):
         pseudocode=pseudocode,
     )
     db.add(hint)
-    db.commit()
 
-    logger.info(f"힌트 응답 완료 | level={request.hint_level} | submission_id={submission.id} | hint_id={hint.id}")
+    try:
+        db.commit()
+    except Exception:
+        logger.exception(f"힌트 저장 실패 | user_id={current_user_id}")
+        raise
+
+    logger.info(f"힌트 응답 완료 | user_id={current_user_id} | level={request.hint_level} | submission_id={submission.id} | hint_id={hint.id}")
 
     return {"explanation": explanation, "pseudocode": pseudocode}
 
 
 @router.get("/history", response_model=HistoryResponse)
-def get_history(page: int = 1, limit: int = 10, db: Session = Depends(get_db)):
+def get_history(
+    page: int = 1,
+    limit: int = 10,
+    current_user_id: int = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    logger.info(f"히스토리 조회 | user_id={current_user_id} | page={page} | limit={limit}")
+
     offset = (page - 1) * limit
-    total = db.query(Hint).count()
+    base_query = db.query(Hint).join(Submission).filter(Submission.user_id == current_user_id)
+
+    total = base_query.count()
     hints = (
-        db.query(Hint)
-        .join(Submission)
+        base_query
         .order_by(Hint.created_at.desc())
         .offset(offset)
         .limit(limit)

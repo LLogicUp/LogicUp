@@ -4,7 +4,23 @@ import ProblemInput from './components/ProblemInput';
 import CodeEditor from './components/CodeEditor';
 import HintPanel, { type Hint } from './components/HintPanel';
 import HistoryPage from './components/HistoryPage';
+import AuthPanel from './components/AuthPanel';
+import { getToken, clearToken, authHeaders } from './api/auth';
 import './App.css';
+
+function getUserid(): string {
+  const token = getToken();
+  if (!token) return '';
+  try {
+    const base64url = token.split('.')[1];
+    const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+    const payload = JSON.parse(atob(padded));
+    return payload.userid ?? '';
+  } catch {
+    return '';
+  }
+}
 
 function App() {
   const [isDark, setIsDark] = useState(
@@ -18,6 +34,8 @@ function App() {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
+  const [token, setToken] = useState<string | null>(() => getToken());
+  const [userid, setUserid] = useState<string>(() => getUserid());
   const [viewMode, setViewMode] = useState<ViewMode>('editor');
   const [source, setSource] = useState<Source>('direct');
   const [problemNumber, setProblemNumber] = useState('');
@@ -28,6 +46,19 @@ function App() {
   const [hints, setHints] = useState<Hint[]>([]);
   const [hintLevel, setHintLevel] = useState(1);
   const [loading, setLoading] = useState(false);
+
+  const handleLogin = () => {
+    const t = getToken();
+    setToken(t);
+    setUserid(getUserid());
+  };
+
+  const handleLogout = () => {
+    clearToken();
+    setToken(null);
+    setUserid('');
+    setViewMode('editor');
+  };
 
   const handleSourceChange = (newSource: Source) => {
     setSource(newSource);
@@ -43,7 +74,7 @@ function App() {
     try {
       const res = await fetch('http://localhost:8000/hint', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({
           ...(source === 'baekjoon'
             ? { problem_number: parseInt(problemNumber) || 0 }
@@ -53,6 +84,10 @@ function App() {
           hint_level: hintLevel,
         }),
       });
+      if (res.status === 401) {
+        handleLogout();
+        return;
+      }
       const data = await res.json();
       setHints((prev) => [
         ...prev,
@@ -93,6 +128,10 @@ function App() {
     return `힌트 요청 (${hintLevel}단계)`;
   };
 
+  if (!token) {
+    return <AuthPanel onLogin={handleLogin} />;
+  }
+
   return (
     <div className={`App${isDark ? ' dark' : ''}`}>
       <Header
@@ -100,9 +139,11 @@ function App() {
         onSourceChange={handleSourceChange}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
+        userid={userid}
+        onLogout={handleLogout}
       />
       {viewMode === 'history' ? (
-        <HistoryPage />
+        <HistoryPage onLogout={handleLogout} />
       ) : (
         <>
           <main className="main-container">

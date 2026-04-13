@@ -13,11 +13,18 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     created_at = Column(DateTime, server_default=func.now())
 
+    submissions: Mapped[list["Submission"]] = relationship(
+        "Submission", back_populates="user", cascade="all, delete-orphan"
+    )
+
 
 class Submission(Base):
     __tablename__ = "submissions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     source: Mapped[str] = mapped_column(String(20), nullable=False)
     external_problem_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     problem: Mapped[str] = mapped_column(Text, nullable=False, default="")
@@ -27,6 +34,7 @@ class Submission(Base):
     error_log: Mapped[str] = mapped_column(Text, nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
+    user: Mapped["User"] = relationship("User", back_populates="submissions")
     hints: Mapped[list["Hint"]] = relationship(
         "Hint", back_populates="submission", cascade="all, delete-orphan"
     )

@@ -12,9 +12,11 @@ interface HeaderProps {
   onSourceChange: (source: Source) => void;
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
+  userid: string;
+  onLogout: () => void;
 }
 
-function Header({ source, onSourceChange, viewMode, onViewModeChange }: HeaderProps) {
+function Header({ source, onSourceChange, viewMode, onViewModeChange, userid, onLogout }: HeaderProps) {
   return (
     <header className="App-header">
       <h1>LogicUp</h1>
@@ -45,6 +47,10 @@ function Header({ source, onSourceChange, viewMode, onViewModeChange }: HeaderPr
           >
             히스토리
           </button>
+        </div>
+        <div className="user-info">
+          <span className="userid">{userid}</span>
+          <button className="logout-button" onClick={onLogout}>로그아웃</button>
         </div>
       </div>
     </header>
