@@ -1,5 +1,7 @@
 import json
+from typing import Optional
 from fastapi import APIRouter, Depends
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from models import HintRequest
 from boj import fetch_boj_problem
@@ -7,7 +9,7 @@ from config import groq_client, logger
 from prompts import SYSTEM_PROMPT, build_prompt
 from database import get_db
 from db_models import Submission, Hint
-from schemas import HistoryItem, HistoryResponse
+from schemas import HistoryItem, HistoryResponse, ProblemSummary, ProblemListResponse, SubmissionSummary, SubmissionListResponse, DirectProblemSummary, DirectProblemListResponse
 from auth import get_current_user
 
 router = APIRouter()
@@ -97,17 +99,142 @@ def get_hint(
     return {"explanation": explanation, "pseudocode": pseudocode}
 
 
+@router.get("/history/submissions", response_model=SubmissionListResponse)
+def get_submission_list(
+    source: Optional[str] = None,
+    current_user_id: int = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    logger.info(f"제출 목록 조회 | user_id={current_user_id} | source={source}")
+
+    query = (
+        db.query(
+            Submission.id.label("submission_id"),
+            Submission.source,
+            Submission.external_problem_id,
+            Submission.problem,
+            func.count(Hint.id).label("hint_count"),
+            func.max(Hint.created_at).label("last_hint_at"),
+        )
+        .join(Hint, Hint.submission_id == Submission.id)
+        .filter(Submission.user_id == current_user_id)
+    )
+
+    if source is not None:
+        query = query.filter(Submission.source == source)
+
+    rows = (
+        query
+        .group_by(Submission.id)
+        .order_by(func.max(Hint.created_at).desc())
+        .all()
+    )
+
+    return SubmissionListResponse(items=[
+        SubmissionSummary(
+            submission_id=row.submission_id,
+            source=row.source,
+            external_problem_id=row.external_problem_id,
+            problem_snippet=row.problem[:80] if row.problem else "",
+            hint_count=row.hint_count,
+            last_hint_at=row.last_hint_at,
+        )
+        for row in rows
+    ])
+
+
+@router.get("/history/problems", response_model=ProblemListResponse)
+def get_problem_list(
+    current_user_id: int = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    logger.info(f"백준 문제 목록 조회 | user_id={current_user_id}")
+
+    rows = (
+        db.query(
+            Submission.external_problem_id,
+            func.count(Hint.id).label("hint_count"),
+            func.max(Hint.created_at).label("last_hint_at"),
+        )
+        .join(Hint, Hint.submission_id == Submission.id)
+        .filter(
+            Submission.user_id == current_user_id,
+            Submission.source == "baekjoon",
+            Submission.external_problem_id.isnot(None),
+        )
+        .group_by(Submission.external_problem_id)
+        .order_by(func.max(Hint.created_at).desc())
+        .all()
+    )
+
+    return ProblemListResponse(items=[
+        ProblemSummary(
+            external_problem_id=row.external_problem_id,
+            hint_count=row.hint_count,
+            last_hint_at=row.last_hint_at,
+        )
+        for row in rows
+    ])
+
+
+@router.get("/history/direct-problems", response_model=DirectProblemListResponse)
+def get_direct_problem_list(
+    current_user_id: int = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    logger.info(f"직접입력 문제 목록 조회 | user_id={current_user_id}")
+
+    rows = (
+        db.query(
+            Submission.problem,
+            func.count(Hint.id).label("hint_count"),
+            func.max(Hint.created_at).label("last_hint_at"),
+        )
+        .join(Hint, Hint.submission_id == Submission.id)
+        .filter(
+            Submission.user_id == current_user_id,
+            Submission.source == "direct",
+        )
+        .group_by(Submission.problem)
+        .order_by(func.max(Hint.created_at).desc())
+        .all()
+    )
+
+    return DirectProblemListResponse(items=[
+        DirectProblemSummary(
+            problem=row.problem,
+            problem_snippet=row.problem[:80] if row.problem else "",
+            hint_count=row.hint_count,
+            last_hint_at=row.last_hint_at,
+        )
+        for row in rows
+    ])
+
+
 @router.get("/history", response_model=HistoryResponse)
 def get_history(
     page: int = 1,
     limit: int = 10,
+    source: Optional[str] = None,
+    problem_id: Optional[str] = None,
+    submission_id: Optional[int] = None,
+    problem_text: Optional[str] = None,
     current_user_id: int = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    logger.info(f"히스토리 조회 | user_id={current_user_id} | page={page} | limit={limit}")
+    logger.info(f"히스토리 조회 | user_id={current_user_id} | page={page} | limit={limit} | source={source} | problem_id={problem_id} | submission_id={submission_id} | problem_text={'(set)' if problem_text else None}")
 
     offset = (page - 1) * limit
     base_query = db.query(Hint).join(Submission).filter(Submission.user_id == current_user_id)
+
+    if source is not None:
+        base_query = base_query.filter(Submission.source == source)
+    if problem_id is not None:
+        base_query = base_query.filter(Submission.external_problem_id == problem_id)
+    if submission_id is not None:
+        base_query = base_query.filter(Submission.id == submission_id)
+    if problem_text is not None:
+        base_query = base_query.filter(Submission.problem == problem_text)
 
     total = base_query.count()
     hints = (
