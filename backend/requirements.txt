@@ -53,3 +53,6 @@ uritemplate==4.2.0
 urllib3==2.6.3
 uvicorn==0.40.0
 websockets==15.0.1
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.0
+alembic>=1.13.0

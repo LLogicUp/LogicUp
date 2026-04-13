@@ -1,4 +1,5 @@
 export type Source = 'direct' | 'baekjoon' | 'oj';
+export type ViewMode = 'editor' | 'history';
 
 const SOURCE_LABELS: Record<Source, string> = {
   direct: '직접 입력',
@@ -9,23 +10,43 @@ const SOURCE_LABELS: Record<Source, string> = {
 interface HeaderProps {
   source: Source;
   onSourceChange: (source: Source) => void;
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
 }
 
-function Header({ source, onSourceChange }: HeaderProps) {
+function Header({ source, onSourceChange, viewMode, onViewModeChange }: HeaderProps) {
   return (
     <header className="App-header">
       <h1>LogicUp</h1>
-      <nav className="nav-tabs">
-        {(Object.keys(SOURCE_LABELS) as Source[]).map((s) => (
+      <div className="header-controls">
+        {viewMode === 'editor' && (
+          <nav className="nav-tabs">
+            {(Object.keys(SOURCE_LABELS) as Source[]).map((s) => (
+              <button
+                key={s}
+                className={`nav-tab${source === s ? ' active' : ''}`}
+                onClick={() => onSourceChange(s)}
+              >
+                {SOURCE_LABELS[s]}
+              </button>
+            ))}
+          </nav>
+        )}
+        <div className="view-toggle">
           <button
-            key={s}
-            className={`nav-tab${source === s ? ' active' : ''}`}
-            onClick={() => onSourceChange(s)}
+            className={`nav-tab${viewMode === 'editor' ? ' active' : ''}`}
+            onClick={() => onViewModeChange('editor')}
           >
-            {SOURCE_LABELS[s]}
+            에디터
           </button>
-        ))}
-      </nav>
+          <button
+            className={`nav-tab${viewMode === 'history' ? ' active' : ''}`}
+            onClick={() => onViewModeChange('history')}
+          >
+            히스토리
+          </button>
+        </div>
+      </div>
     </header>
   );
 }

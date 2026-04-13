@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import Header, { type Source } from './components/Header';
+import Header, { type Source, type ViewMode } from './components/Header';
 import ProblemInput from './components/ProblemInput';
 import CodeEditor from './components/CodeEditor';
 import HintPanel, { type Hint } from './components/HintPanel';
+import HistoryPage from './components/HistoryPage';
 import './App.css';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
+  const [viewMode, setViewMode] = useState<ViewMode>('editor');
   const [source, setSource] = useState<Source>('direct');
   const [problemNumber, setProblemNumber] = useState('');
   const [problem, setProblem] = useState('');
@@ -93,43 +95,54 @@ function App() {
 
   return (
     <div className={`App${isDark ? ' dark' : ''}`}>
-      <Header source={source} onSourceChange={handleSourceChange} />
-      <main className="main-container">
-        <div className="code-editor">
-          <ProblemInput
-            source={source}
-            problem={problem}
-            expectedInput={expectedInput}
-            expectedOutput={expectedOutput}
-            problemNumber={problemNumber}
-            onProblemChange={setProblem}
-            onExpectedInputChange={setExpectedInput}
-            onExpectedOutputChange={setExpectedOutput}
-            onProblemNumberChange={setProblemNumber}
-          />
-          <CodeEditor
-            code={code}
-            isDark={isDark}
-            onCodeChange={setCode}
-          />
-        </div>
-        <HintPanel hints={hints} />
-      </main>
-      <footer className="App-footer">
-        <button
-          onClick={requestHint}
-          disabled={loading || hintLevel > 3}
-        >
-          {getButtonLabel()}
-        </button>
-        <button
-          className="reset-button"
-          onClick={resetAll}
-          disabled={loading}
-        >
-          Reset
-        </button>
-      </footer>
+      <Header
+        source={source}
+        onSourceChange={handleSourceChange}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+      />
+      {viewMode === 'history' ? (
+        <HistoryPage />
+      ) : (
+        <>
+          <main className="main-container">
+            <div className="code-editor">
+              <ProblemInput
+                source={source}
+                problem={problem}
+                expectedInput={expectedInput}
+                expectedOutput={expectedOutput}
+                problemNumber={problemNumber}
+                onProblemChange={setProblem}
+                onExpectedInputChange={setExpectedInput}
+                onExpectedOutputChange={setExpectedOutput}
+                onProblemNumberChange={setProblemNumber}
+              />
+              <CodeEditor
+                code={code}
+                isDark={isDark}
+                onCodeChange={setCode}
+              />
+            </div>
+            <HintPanel hints={hints} />
+          </main>
+          <footer className="App-footer">
+            <button
+              onClick={requestHint}
+              disabled={loading || hintLevel > 3}
+            >
+              {getButtonLabel()}
+            </button>
+            <button
+              className="reset-button"
+              onClick={resetAll}
+              disabled={loading}
+            >
+              Reset
+            </button>
+          </footer>
+        </>
+      )}
     </div>
   );
 }
