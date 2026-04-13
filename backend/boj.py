@@ -2,7 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 from config import logger
 
-
 def fetch_boj_problem(problem_number: int) -> dict:
     url = f"https://www.acmicpc.net/problem/{problem_number}"
     headers = {
