@@ -12,6 +12,7 @@ from schemas import HistoryItem, HistoryResponse
 router = APIRouter()
 
 
+
 @router.get("/health")
 def health_check():
     logger.info("헬스체크 요청")
