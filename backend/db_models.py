@@ -12,6 +12,7 @@ class User(Base):
     userid = Column(String(20), unique=True, nullable=True, index=True)
     password_hash = Column(String(255), nullable=True)
     kakao_id = Column(String(50), unique=True, nullable=True, index=True)
+    nickname = Column(String(50), nullable=True)
     created_at = Column(DateTime, server_default=func.now())
 
     submissions: Mapped[list["Submission"]] = relationship(

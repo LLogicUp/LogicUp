@@ -65,6 +65,7 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
     user = User(
         userid=request.userid,
         password_hash=hash_password(request.password),
+        nickname=request.userid,
     )
     db.add(user)
     db.commit()
@@ -81,7 +82,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         logger.warning(f"로그인 실패 | userid={request.userid}")
         raise HTTPException(status_code=401, detail="아이디 또는 비밀번호가 잘못되었습니다")
 
-    token = create_token({"user_id": user.id, "userid": user.userid})
+    token = create_token({"user_id": user.id, "nickname": user.nickname})
 
     logger.info(f"로그인 성공 | userid={request.userid}")
     return {"access_token": token}
@@ -123,22 +124,22 @@ def kakao_login(request: KakaoLoginRequest, db: Session = Depends(get_db)):
         logger.warning(f"카카오 사용자 정보 요청 실패 | status={user_res.status_code}")
         raise HTTPException(status_code=401, detail="카카오 사용자 정보를 가져올 수 없습니다")
 
-    kakao_id = str(user_res.json().get("id"))
+    user_info = user_res.json()
+    kakao_id = str(user_info.get("id"))
+    kakao_nickname = user_info.get("properties", {}).get("nickname", "")
     logger.info(f"카카오 사용자 확인 | kakao_id={kakao_id}")
 
     # 3. DB에서 카카오 유저 조회, 없으면 자동 회원가입
     user = db.query(User).filter(User.kakao_id == kakao_id).first()
     if not user:
-        generated_userid = f"kakao_{kakao_id}"[:20]
-        user = User(kakao_id=kakao_id, userid=generated_userid)
+        user = User(kakao_id=kakao_id)
         db.add(user)
         db.commit()
         db.refresh(user)
-        logger.info(f"카카오 자동 회원가입 | kakao_id={kakao_id} | userid={generated_userid} | user_id={user.id}")
+        logger.info(f"카카오 자동 회원가입 | kakao_id={kakao_id} | user_id={user.id}")
 
     # 4. JWT 토큰 발급
-    resolved_userid = user.userid or f"kakao_{kakao_id}"[:20]
-    token = create_token({"user_id": user.id, "userid": resolved_userid, "kakao_id": kakao_id})
+    token = create_token({"user_id": user.id, "nickname": user.nickname})
 
     logger.info(f"카카오 로그인 성공 | kakao_id={kakao_id} | user_id={user.id}")
     return {"access_token": token}
