@@ -4,8 +4,10 @@ import ProblemInput from './components/ProblemInput';
 import CodeEditor from './components/CodeEditor';
 import HintPanel, { type Hint } from './components/HintPanel';
 import HistoryPage from './components/HistoryPage';
+import QuizPage from './components/quiz/QuizPage';
 import AuthPanel from './components/AuthPanel';
 import { getToken, clearToken, authHeaders, kakaoLogin } from './api/auth';
+import type { QuizTarget } from './api/quiz';
 import './App.css';
 
 function getUserid(): string {
@@ -56,6 +58,7 @@ function App() {
   }, []);
 
   const [viewMode, setViewMode] = useState<ViewMode>('editor');
+  const [quizTarget, setQuizTarget] = useState<QuizTarget | null>(null);
   const [source, setSource] = useState<Source>('direct');
   const [problemNumber, setProblemNumber] = useState('');
   const [problem, setProblem] = useState('');
@@ -77,6 +80,22 @@ function App() {
     setToken(null);
     setUserid('');
     setViewMode('editor');
+    setQuizTarget(null);
+  };
+
+  const handleViewModeChange = (mode: ViewMode) => {
+    setQuizTarget(null);
+    setViewMode(mode);
+  };
+
+  const handleQuizRequest = (id: string, label: string) => {
+    setQuizTarget({ id, label });
+    setViewMode('quiz');
+  };
+
+  const handleQuizTargetDone = () => {
+    setQuizTarget(null);
+    setViewMode('history');
   };
 
   const handleSourceChange = (newSource: Source) => {
@@ -157,12 +176,14 @@ function App() {
         source={source}
         onSourceChange={handleSourceChange}
         viewMode={viewMode}
-        onViewModeChange={setViewMode}
+        onViewModeChange={handleViewModeChange}
         userid={userid}
         onLogout={handleLogout}
       />
       {viewMode === 'history' ? (
-        <HistoryPage onLogout={handleLogout} />
+        <HistoryPage onLogout={handleLogout} onQuizRequest={handleQuizRequest} />
+      ) : viewMode === 'quiz' ? (
+        <QuizPage target={quizTarget} onTargetDone={handleQuizTargetDone} />
       ) : (
         <>
           <main className="main-container">
