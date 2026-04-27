@@ -66,6 +66,8 @@ def get_hint(
     result = json.loads(raw_content)
     explanation = result.get("explanation", "")
     pseudocode = result.get("pseudocode", "")
+    error_categories = result.get("error_categories", [])
+    logger.info(f"에러 카테고리 분류 | user_id={current_user_id} | categories={error_categories}")
 
     submission = Submission(
         user_id=current_user_id,
