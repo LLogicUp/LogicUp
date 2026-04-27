@@ -1,5 +1,5 @@
 export type Source = 'direct' | 'baekjoon' | 'oj';
-export type ViewMode = 'editor' | 'history';
+export type ViewMode = 'editor' | 'history' | 'quiz';
 
 const SOURCE_LABELS: Record<Source, string> = {
   direct: '직접 입력',
@@ -46,6 +46,12 @@ function Header({ source, onSourceChange, viewMode, onViewModeChange, userid, on
             onClick={() => onViewModeChange('history')}
           >
             히스토리
+          </button>
+          <button
+            className={`nav-tab${viewMode === 'quiz' ? ' active' : ''}`}
+            onClick={() => onViewModeChange('quiz')}
+          >
+            퀴즈
           </button>
         </div>
         <div className="user-info">

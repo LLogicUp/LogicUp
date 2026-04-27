@@ -4,6 +4,7 @@ import ProblemInput from './components/ProblemInput';
 import CodeEditor from './components/CodeEditor';
 import HintPanel, { type Hint } from './components/HintPanel';
 import HistoryPage from './components/HistoryPage';
+import QuizPage from './components/quiz/QuizPage';
 import AuthPanel from './components/AuthPanel';
 import { getToken, clearToken, authHeaders, kakaoLogin } from './api/auth';
 import './App.css';
@@ -163,6 +164,8 @@ function App() {
       />
       {viewMode === 'history' ? (
         <HistoryPage onLogout={handleLogout} />
+      ) : viewMode === 'quiz' ? (
+        <QuizPage />
       ) : (
         <>
           <main className="main-container">
