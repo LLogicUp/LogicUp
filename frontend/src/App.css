@@ -657,6 +657,37 @@ body {
   color: var(--text-secondary);
 }
 
+/* ─── 문제 카드 행 (카드 + 퀴즈 버튼) ─── */
+.problem-card-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.problem-card-row .problem-card {
+  flex: 1;
+  width: auto;
+}
+
+.problem-quiz-btn {
+  flex-shrink: 0;
+  padding: 0 18px;
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
+}
+
+.problem-quiz-btn:hover {
+  background: var(--accent);
+  color: #1a1a2e;
+}
+
 /* ─── 뒤로가기 버튼 ─── */
 .history-back-btn {
   background: transparent;

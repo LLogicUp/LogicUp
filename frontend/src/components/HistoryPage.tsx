@@ -56,9 +56,10 @@ function cardDate(card: GroupedCard): string {
 
 interface HistoryPageProps {
   onLogout: () => void;
+  onQuizRequest?: (id: string, label: string) => void;
 }
 
-function HistoryPage({ onLogout }: HistoryPageProps) {
+function HistoryPage({ onLogout, onQuizRequest }: HistoryPageProps) {
   const [activeTab, setActiveTab] = useState<HistoryTab>('all');
   const [drillDown, setDrillDown] = useState<DrillDown | null>(null);
 
@@ -142,6 +143,15 @@ function HistoryPage({ onLogout }: HistoryPageProps) {
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
+  const handleQuizClick = (card: GroupedCard) => {
+    if (!onQuizRequest) return;
+    if (card.kind === 'problem') {
+      onQuizRequest(`boj-${card.data.external_problem_id}`, `백준 ${card.data.external_problem_id}번`);
+    } else {
+      onQuizRequest(`direct-${card.data.last_hint_at}`, card.data.problem_snippet || '직접 입력');
+    }
+  };
+
   const handleCardClick = (card: GroupedCard) => {
     if (card.kind === 'problem') {
       setDrillDown({
@@ -178,15 +188,27 @@ function HistoryPage({ onLogout }: HistoryPageProps) {
     return (
       <div className="problem-list">
         {cards.map((card, i) => (
-          <button
+          <div
             key={card.kind === 'problem' ? `p-${card.data.external_problem_id}` : `d-${i}-${card.data.last_hint_at}`}
-            className="problem-card"
-            onClick={() => handleCardClick(card)}
+            className="problem-card-row"
           >
-            <span className="problem-number">{cardLabel(card)}</span>
-            <span className="problem-hint-count">힌트 {card.data.hint_count}회</span>
-            <span className="problem-last-date">{formatDate(cardDate(card))}</span>
-          </button>
+            <button
+              className="problem-card"
+              onClick={() => handleCardClick(card)}
+            >
+              <span className="problem-number">{cardLabel(card)}</span>
+              <span className="problem-hint-count">힌트 {card.data.hint_count}회</span>
+              <span className="problem-last-date">{formatDate(cardDate(card))}</span>
+            </button>
+            {onQuizRequest && (
+              <button
+                className="problem-quiz-btn"
+                onClick={() => handleQuizClick(card)}
+              >
+                퀴즈
+              </button>
+            )}
+          </div>
         ))}
       </div>
     );

@@ -129,14 +129,16 @@ def kakao_login(request: KakaoLoginRequest, db: Session = Depends(get_db)):
     # 3. DB에서 카카오 유저 조회, 없으면 자동 회원가입
     user = db.query(User).filter(User.kakao_id == kakao_id).first()
     if not user:
-        user = User(kakao_id=kakao_id)
+        generated_userid = f"kakao_{kakao_id}"[:20]
+        user = User(kakao_id=kakao_id, userid=generated_userid)
         db.add(user)
         db.commit()
         db.refresh(user)
-        logger.info(f"카카오 자동 회원가입 | kakao_id={kakao_id} | user_id={user.id}")
+        logger.info(f"카카오 자동 회원가입 | kakao_id={kakao_id} | userid={generated_userid} | user_id={user.id}")
 
     # 4. JWT 토큰 발급
-    token = create_token({"user_id": user.id, "kakao_id": kakao_id})
+    resolved_userid = user.userid or f"kakao_{kakao_id}"[:20]
+    token = create_token({"user_id": user.id, "userid": resolved_userid, "kakao_id": kakao_id})
 
     logger.info(f"카카오 로그인 성공 | kakao_id={kakao_id} | user_id={user.id}")
     return {"access_token": token}
