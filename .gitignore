@@ -157,3 +157,5 @@ frontend/node_modules/
 # Claude Code 설정
 .claude/
 CLAUDE.md
+.editorconfig
+.gitattributes
