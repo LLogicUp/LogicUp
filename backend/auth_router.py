@@ -57,7 +57,11 @@ class LoginRequest(BaseModel):
 @auth_router.post("/register")
 def register(request: RegisterRequest, db: Session = Depends(get_db)):
     logger.info(f"회원가입 요청 | userid={request.userid}")
-    existing = db.query(User).filter(User.userid == request.userid).first()
+    try:
+        existing = db.query(User).filter(User.userid == request.userid).first()
+    except Exception:
+        logger.exception(f"회원가입 DB 조회 오류 | userid={request.userid}")
+        raise HTTPException(status_code=503, detail="서버가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해주세요.")
     if existing:
         logger.warning(f"회원가입 실패 | 중복 userid={request.userid}")
         raise HTTPException(status_code=400, detail="이미 존재하는 사용자입니다")
@@ -68,7 +72,12 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
         nickname=request.userid,
     )
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        logger.exception(f"회원가입 저장 오류 | userid={request.userid}")
+        raise HTTPException(status_code=503, detail="회원가입 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
 
     logger.info(f"회원가입 완료 | userid={request.userid}")
     return {"message": "가입 완료"}
@@ -77,8 +86,12 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
 @auth_router.post("/login")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     logger.info(f"로그인 요청 | userid={request.userid}")
-    user = db.query(User).filter(User.userid == request.userid).first()
-    if not user or not verify_password(request.password, user.password_hash):
+    try:
+        user = db.query(User).filter(User.userid == request.userid).first()
+    except Exception as e:
+        logger.error(f"로그인 DB 오류 | userid={request.userid} | error={e}")
+        raise HTTPException(status_code=503, detail="서버가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해주세요.")
+    if not user or not user.password_hash or not verify_password(request.password, user.password_hash):
         logger.warning(f"로그인 실패 | userid={request.userid}")
         raise HTTPException(status_code=401, detail="아이디 또는 비밀번호가 잘못되었습니다")
 
@@ -130,12 +143,21 @@ def kakao_login(request: KakaoLoginRequest, db: Session = Depends(get_db)):
     logger.info(f"카카오 사용자 확인 | kakao_id={kakao_id}")
 
     # 3. DB에서 카카오 유저 조회, 없으면 자동 회원가입
-    user = db.query(User).filter(User.kakao_id == kakao_id).first()
+    try:
+        user = db.query(User).filter(User.kakao_id == kakao_id).first()
+    except Exception:
+        logger.exception(f"카카오 로그인 DB 조회 오류 | kakao_id={kakao_id}")
+        raise HTTPException(status_code=503, detail="서버가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해주세요.")
     if not user:
         user = User(kakao_id=kakao_id, nickname=kakao_nickname)
         db.add(user)
-        db.commit()
-        db.refresh(user)
+        try:
+            db.commit()
+            db.refresh(user)
+        except Exception:
+            db.rollback()
+            logger.exception(f"카카오 자동 회원가입 저장 오류 | kakao_id={kakao_id}")
+            raise HTTPException(status_code=503, detail="카카오 로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
         logger.info(f"카카오 자동 회원가입 | kakao_id={kakao_id} | user_id={user.id} | nickname={kakao_nickname}")
 
     # 4. JWT 토큰 발급

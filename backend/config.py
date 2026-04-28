@@ -10,8 +10,9 @@ logger = logging.getLogger("logicup")
 logger.setLevel(logging.INFO)
 
 console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)
 console_handler.setFormatter(logging.Formatter(
-    "%(asctime)s | %(levelname)s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+    "%(asctime)s | %(levelname)-8s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
 ))
 logger.addHandler(console_handler)
 
