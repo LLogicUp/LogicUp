@@ -154,3 +154,5 @@ class HintRequest(BaseModel):
 - DB: PostgreSQL + Alembic 마이그레이션 설정 완료
 
 ## 애매하거나 필요한 정보가 있다면 사용자에게 질문
+
+모든 계획파일은 docs디렉토리에 저장.

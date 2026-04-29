@@ -2,6 +2,15 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
+class HintResponse(BaseModel):
+    submission_id: int
+    hint_id: int
+    hint_level: int
+    explanation: str
+    pseudocode: str
+    error_categories: list[str]
+
+
 class HistoryItem(BaseModel):
     hint_id: int
     submission_id: int
