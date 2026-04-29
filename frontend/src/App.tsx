@@ -6,7 +6,9 @@ import HintPanel, { type Hint } from './components/HintPanel';
 import HistoryPage from './components/HistoryPage';
 import QuizPage from './components/quiz/QuizPage';
 import AuthPanel from './components/AuthPanel';
-import { getToken, clearToken, authHeaders, kakaoLogin } from './api/auth';
+import { getToken, clearToken, kakaoLogin } from './api/auth';
+import { postHint } from './api/hint';
+import type { HintApiResponse } from './api/hint';
 import type { QuizTarget } from './api/quiz';
 import './App.css';
 
@@ -68,6 +70,7 @@ function App() {
   const [hints, setHints] = useState<Hint[]>([]);
   const [hintLevel, setHintLevel] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [submissionId, setSubmissionId] = useState<number | null>(null);
 
   const handleLogin = () => {
     const t = getToken();
@@ -106,37 +109,38 @@ function App() {
     setProblemNumber('');
   };
 
+  useEffect(() => {
+    setSubmissionId(null);
+  }, [problem, problemNumber, code, source]);
+
   const requestHint = async () => {
     if (!code.trim()) return;
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:8000/hint', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify({
-          ...(source === 'baekjoon'
-            ? { problem_number: parseInt(problemNumber) || 0 }
-            : { problem, expected_input: expectedInput, expected_output: expectedOutput }),
-          code,
-          error_log: '',
-          hint_level: hintLevel,
-        }),
+      const data: HintApiResponse = await postHint({
+        submission_id: submissionId,
+        ...(source === 'baekjoon'
+          ? { problem_number: parseInt(problemNumber) || 0 }
+          : { problem, expected_input: expectedInput, expected_output: expectedOutput }),
+        code,
+        error_log: '',
+        hint_level: hintLevel,
       });
-      if (res.status === 401) {
-        handleLogout();
-        return;
-      }
-      const data = await res.json();
+      setSubmissionId(data.submission_id);
       setHints((prev) => [
         ...prev,
         {
-          level: hintLevel,
+          level: data.hint_level,
           explanation: data.explanation ?? '',
           pseudocode: data.pseudocode ?? '',
         },
       ]);
       if (hintLevel < 4) setHintLevel(hintLevel + 1);
-    } catch {
+    } catch (err) {
+      if ((err as Error).message === 'Unauthorized') {
+        handleLogout();
+        return;
+      }
       setHints((prev) => [
         ...prev,
         {
@@ -158,6 +162,7 @@ function App() {
     setCode('');
     setHints([]);
     setHintLevel(1);
+    setSubmissionId(null);
   };
 
   const getButtonLabel = () => {
