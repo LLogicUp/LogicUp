@@ -56,10 +56,10 @@ function cardDate(card: GroupedCard): string {
 
 interface HistoryPageProps {
   onLogout: () => void;
-  onQuizRequest?: (id: string, label: string) => void;
+  onGoToQuiz?: () => void;
 }
 
-function HistoryPage({ onLogout, onQuizRequest }: HistoryPageProps) {
+function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
   const [activeTab, setActiveTab] = useState<HistoryTab>('all');
   const [drillDown, setDrillDown] = useState<DrillDown | null>(null);
 
@@ -143,14 +143,6 @@ function HistoryPage({ onLogout, onQuizRequest }: HistoryPageProps) {
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
-  const handleQuizClick = (card: GroupedCard) => {
-    if (!onQuizRequest) return;
-    if (card.kind === 'problem') {
-      onQuizRequest(`boj-${card.data.external_problem_id}`, `백준 ${card.data.external_problem_id}번`);
-    } else {
-      onQuizRequest(`direct-${card.data.last_hint_at}`, card.data.problem_snippet || '직접 입력');
-    }
-  };
 
   const handleCardClick = (card: GroupedCard) => {
     if (card.kind === 'problem') {
@@ -200,10 +192,10 @@ function HistoryPage({ onLogout, onQuizRequest }: HistoryPageProps) {
               <span className="problem-hint-count">힌트 {card.data.hint_count}회</span>
               <span className="problem-last-date">{formatDate(cardDate(card))}</span>
             </button>
-            {onQuizRequest && (
+            {onGoToQuiz && (
               <button
                 className="problem-quiz-btn"
-                onClick={() => handleQuizClick(card)}
+                onClick={onGoToQuiz}
               >
                 퀴즈
               </button>
