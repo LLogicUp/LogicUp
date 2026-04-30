@@ -1,75 +1,82 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type {
   QuizScreenState,
   QuizSetSummary,
   QuizQuestion,
   QuizAnswerDraft,
   QuizSubmitResult,
-  QuizTarget,
+  CategoryStat,
 } from '../../api/quiz';
 import {
+  fetchQuizCategories,
   fetchQuizSets,
   fetchQuizSet,
   submitQuiz,
-  fetchProblemQuiz,
-  submitProblemQuiz,
 } from '../../api/quiz';
 import QuizSetList from './QuizSetList';
 import QuizSession from './QuizSession';
 import QuizResult from './QuizResult';
 
 interface QuizPageProps {
-  target?: QuizTarget | null;
-  onTargetDone?: () => void;
+  onUnauthorized?: () => void;
 }
 
-function QuizPage({ target, onTargetDone }: QuizPageProps) {
+function QuizPage({ onUnauthorized }: QuizPageProps) {
   const [screen, setScreen] = useState<QuizScreenState>('loading');
   const [sets, setSets] = useState<QuizSetSummary[]>([]);
+  const [categories, setCategories] = useState<CategoryStat[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   const [activeSetId, setActiveSetId] = useState<number | null>(null);
   const [activeTitle, setActiveTitle] = useState('');
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [result, setResult] = useState<QuizSubmitResult | null>(null);
-  const [isProblemMode, setIsProblemMode] = useState(false);
 
-  useEffect(() => {
-    if (target) {
-      loadProblemQuiz(target);
-    } else {
-      setIsProblemMode(false);
-      loadSets();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [target]);
+  function handleUnauthorized() {
+    onUnauthorized?.();
+  }
 
-  async function loadSets() {
+  const loadSets = useCallback(async (category: string | null = null) => {
     setScreen('loading');
     setError('');
     try {
-      const data = await fetchQuizSets();
+      const [cats, data] = await Promise.all([
+        fetchQuizCategories(),
+        fetchQuizSets(category),
+      ]);
+      setCategories(cats);
       setSets(data);
       setScreen(data.length === 0 ? 'empty' : 'list');
     } catch (e) {
+      if (e instanceof Error && e.message === 'Unauthorized') {
+        handleUnauthorized();
+        return;
+      }
       setError(e instanceof Error ? e.message : '퀴즈 목록을 불러오지 못했습니다.');
       setScreen('error');
     }
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  async function loadProblemQuiz(t: QuizTarget) {
-    setIsProblemMode(true);
+  useEffect(() => {
+    loadSets(null);
+  }, [loadSets]);
+
+  async function handleCategoryChange(cat: string | null) {
+    setActiveCategory(cat);
     setScreen('loading');
     setError('');
     try {
-      const data = await fetchProblemQuiz(t);
-      setActiveSetId(null);
-      setActiveTitle(data.title);
-      setQuestions(data.questions);
-      setResult(null);
-      setScreen('session');
+      const data = await fetchQuizSets(cat);
+      setSets(data);
+      setScreen(data.length === 0 ? 'empty' : 'list');
     } catch (e) {
-      setError(e instanceof Error ? e.message : '퀴즈를 불러오지 못했습니다.');
+      if (e instanceof Error && e.message === 'Unauthorized') {
+        handleUnauthorized();
+        return;
+      }
+      setError(e instanceof Error ? e.message : '퀴즈 목록을 불러오지 못했습니다.');
       setScreen('error');
     }
   }
@@ -79,47 +86,44 @@ function QuizPage({ target, onTargetDone }: QuizPageProps) {
     setError('');
     try {
       const data = await fetchQuizSet(setId);
-      setActiveSetId(setId);
+      setActiveSetId(data.id);
       setActiveTitle(data.title);
       setQuestions(data.questions);
       setResult(null);
       setScreen('session');
     } catch (e) {
+      if (e instanceof Error && e.message === 'Unauthorized') {
+        handleUnauthorized();
+        return;
+      }
       setError(e instanceof Error ? e.message : '퀴즈를 불러오지 못했습니다.');
       setScreen('error');
     }
   }
 
   async function handleSubmit(answers: QuizAnswerDraft[]) {
+    if (activeSetId === null) return;
     setScreen('submitting');
     setError('');
     try {
-      let data: QuizSubmitResult;
-      if (isProblemMode && target) {
-        data = await submitProblemQuiz(target, answers);
-      } else if (activeSetId !== null) {
-        data = await submitQuiz(activeSetId, answers);
-      } else {
-        throw new Error('퀴즈 정보가 없습니다.');
-      }
+      const data = await submitQuiz(activeSetId, answers);
       setResult(data);
       setScreen('result');
     } catch (e) {
+      if (e instanceof Error && e.message === 'Unauthorized') {
+        handleUnauthorized();
+        return;
+      }
       setError(e instanceof Error ? e.message : '제출에 실패했습니다.');
       setScreen('error');
     }
   }
 
   function handleBackToList() {
-    if (isProblemMode && onTargetDone) {
-      onTargetDone();
-      return;
-    }
     setActiveSetId(null);
     setActiveTitle('');
     setQuestions([]);
     setResult(null);
-    setIsProblemMode(false);
     setScreen('list');
   }
 
@@ -135,9 +139,7 @@ function QuizPage({ target, onTargetDone }: QuizPageProps) {
     return (
       <div className="quiz-status quiz-error">
         <p>{error}</p>
-        <button onClick={isProblemMode && target ? () => loadProblemQuiz(target) : loadSets}>
-          다시 시도
-        </button>
+        <button onClick={() => loadSets(activeCategory)}>다시 시도</button>
       </div>
     );
   }
@@ -145,7 +147,13 @@ function QuizPage({ target, onTargetDone }: QuizPageProps) {
   if (screen === 'list') {
     return (
       <div className="quiz-page">
-        <QuizSetList sets={sets} onStart={handleStart} />
+        <QuizSetList
+          sets={sets}
+          categories={categories}
+          activeCategory={activeCategory}
+          onCategoryChange={handleCategoryChange}
+          onStart={handleStart}
+        />
       </div>
     );
   }

@@ -9,7 +9,6 @@ import AuthPanel from './components/AuthPanel';
 import { getToken, clearToken, kakaoLogin } from './api/auth';
 import { postHint } from './api/hint';
 import type { HintApiResponse } from './api/hint';
-import type { QuizTarget } from './api/quiz';
 import './App.css';
 
 function getUserid(): string {
@@ -60,7 +59,6 @@ function App() {
   }, []);
 
   const [viewMode, setViewMode] = useState<ViewMode>('editor');
-  const [quizTarget, setQuizTarget] = useState<QuizTarget | null>(null);
   const [source, setSource] = useState<Source>('direct');
   const [problemNumber, setProblemNumber] = useState('');
   const [problem, setProblem] = useState('');
@@ -83,22 +81,17 @@ function App() {
     setToken(null);
     setUserid('');
     setViewMode('editor');
-    setQuizTarget(null);
   };
 
   const handleViewModeChange = (mode: ViewMode) => {
-    setQuizTarget(null);
     setViewMode(mode);
   };
 
-  const handleQuizRequest = (id: string, label: string) => {
-    setQuizTarget({ id, label });
-    setViewMode('quiz');
-  };
-
-  const handleQuizTargetDone = () => {
-    setQuizTarget(null);
-    setViewMode('history');
+  const handleQuizUnauthorized = () => {
+    clearToken();
+    setToken(null);
+    setUserid('');
+    setViewMode('editor');
   };
 
   const handleSourceChange = (newSource: Source) => {
@@ -186,9 +179,9 @@ function App() {
         onLogout={handleLogout}
       />
       {viewMode === 'history' ? (
-        <HistoryPage onLogout={handleLogout} onQuizRequest={handleQuizRequest} />
+        <HistoryPage onLogout={handleLogout} onGoToQuiz={() => setViewMode('quiz')} />
       ) : viewMode === 'quiz' ? (
-        <QuizPage target={quizTarget} onTargetDone={handleQuizTargetDone} />
+        <QuizPage onUnauthorized={handleQuizUnauthorized} />
       ) : (
         <>
           <main className="main-container">
