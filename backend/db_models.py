@@ -40,6 +40,9 @@ class Submission(Base):
     hints: Mapped[list["Hint"]] = relationship(
         "Hint", back_populates="submission", cascade="all, delete-orphan"
     )
+    categories: Mapped[list["HintCategory"]] = relationship(
+        "HintCategory", back_populates="submission", cascade="all, delete-orphan"
+    )
 
 
 class Hint(Base):
@@ -55,3 +58,16 @@ class Hint(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     submission: Mapped["Submission"] = relationship("Submission", back_populates="hints")
+
+
+class HintCategory(Base):
+    __tablename__ = "hint_categories"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    submission_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("submissions.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    category: Mapped[str] = mapped_column(String(100), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    submission: Mapped["Submission"] = relationship("Submission", back_populates="categories")

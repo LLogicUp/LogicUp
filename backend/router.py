@@ -1,6 +1,7 @@
 import json
 from typing import Optional
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from models import HintRequest
@@ -8,8 +9,8 @@ from boj import fetch_boj_problem
 from config import groq_client, logger
 from prompts import SYSTEM_PROMPT, build_prompt
 from database import get_db
-from db_models import Submission, Hint
-from schemas import HistoryItem, HistoryResponse, ProblemSummary, ProblemListResponse, SubmissionSummary, SubmissionListResponse, DirectProblemSummary, DirectProblemListResponse
+from db_models import Submission, Hint, HintCategory
+from schemas import HintResponse, HistoryItem, HistoryResponse, ProblemSummary, ProblemListResponse, SubmissionSummary, SubmissionListResponse, DirectProblemSummary, DirectProblemListResponse
 from auth import get_current_user
 
 router = APIRouter()
@@ -21,31 +22,62 @@ def health_check():
     return {"status": "서버 정상 작동 중"}
 
 
-@router.post("/hint")
+@router.post("/hint", response_model=HintResponse)
 def get_hint(
     request: HintRequest,
     current_user_id: int = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    logger.info(f"힌트 요청 수신 | user_id={current_user_id} | level={request.hint_level} | problem_number={request.problem_number} | code_length={len(request.code)}")
+    logger.info(f"힌트 요청 수신 | user_id={current_user_id} | level={request.hint_level} | submission_id={request.submission_id} | problem_number={request.problem_number} | code_length={len(request.code)}")
 
-    if request.problem_number:
-        boj = fetch_boj_problem(request.problem_number)
-        problem = boj.get("problem", "")
-        expected_input = boj.get("expected_input", "")
-        expected_output = boj.get("expected_output", "")
-        source = "baekjoon"
-        external_problem_id = str(request.problem_number)
+    if request.submission_id is not None:
+        submission = db.query(Submission).filter(Submission.id == request.submission_id).first()
+        if submission is None:
+            raise HTTPException(status_code=404, detail="submission not found")
+        if submission.user_id != current_user_id:
+            raise HTTPException(status_code=403, detail="forbidden")
+        if len(submission.hints) >= 3:
+            raise HTTPException(status_code=400, detail="hint limit exceeded")
+        existing_levels = {h.hint_level for h in submission.hints}
+        if request.hint_level in existing_levels:
+            raise HTTPException(status_code=409, detail="hint level already exists")
+
+        problem = submission.problem
+        expected_input = submission.expected_input
+        expected_output = submission.expected_output
+        is_new_submission = False
     else:
-        problem = request.problem
-        expected_input = request.expected_input
-        expected_output = request.expected_output
-        source = "direct"
-        external_problem_id = None
-        logger.info("직접 입력 문제 사용")
+        if request.problem_number:
+            boj = fetch_boj_problem(request.problem_number)
+            problem = boj.get("problem", "")
+            expected_input = boj.get("expected_input", "")
+            expected_output = boj.get("expected_output", "")
+            source = "baekjoon"
+            external_problem_id = str(request.problem_number)
+        else:
+            problem = request.problem
+            expected_input = request.expected_input
+            expected_output = request.expected_output
+            source = "direct"
+            external_problem_id = None
+            logger.info("직접 입력 문제 사용")
 
-    if not problem:
-        logger.warning("문제 내용이 비어있음")
+        if not problem:
+            logger.warning("문제 내용이 비어있음")
+
+        submission = Submission(
+            user_id=current_user_id,
+            source=source,
+            external_problem_id=external_problem_id,
+            problem=problem,
+            expected_input=expected_input,
+            expected_output=expected_output,
+            code=request.code,
+            error_log=request.error_log,
+        )
+        db.add(submission)
+        db.flush()
+        is_new_submission = True
 
     prompt = build_prompt(problem, expected_input, expected_output, request.code, request.error_log, request.hint_level)
 
@@ -69,18 +101,9 @@ def get_hint(
     error_categories = result.get("error_categories", [])
     logger.info(f"에러 카테고리 분류 | user_id={current_user_id} | categories={error_categories}")
 
-    submission = Submission(
-        user_id=current_user_id,
-        source=source,
-        external_problem_id=external_problem_id,
-        problem=problem,
-        expected_input=expected_input,
-        expected_output=expected_output,
-        code=request.code,
-        error_log=request.error_log,
-    )
-    db.add(submission)
-    db.flush()
+    if is_new_submission:
+        for cat in error_categories:
+            db.add(HintCategory(submission_id=submission.id, category=cat))
 
     hint = Hint(
         submission_id=submission.id,
@@ -92,13 +115,45 @@ def get_hint(
 
     try:
         db.commit()
+        db.refresh(hint)
     except Exception:
         logger.exception(f"힌트 저장 실패 | user_id={current_user_id}")
         raise
 
     logger.info(f"힌트 응답 완료 | user_id={current_user_id} | level={request.hint_level} | submission_id={submission.id} | hint_id={hint.id}")
 
-    return {"explanation": explanation, "pseudocode": pseudocode}
+    return HintResponse(
+        submission_id=submission.id,
+        hint_id=hint.id,
+        hint_level=hint.hint_level,
+        explanation=explanation,
+        pseudocode=pseudocode,
+        error_categories=error_categories,
+    )
+
+
+class SubmissionPatch(BaseModel):
+    external_problem_id: str
+
+
+@router.patch("/submissions/{submission_id}")
+def patch_submission(
+    submission_id: int,
+    body: SubmissionPatch,
+    current_user_id: int = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    submission = db.query(Submission).filter(Submission.id == submission_id).first()
+    if submission is None:
+        raise HTTPException(status_code=404, detail="submission not found")
+    if submission.user_id != current_user_id:
+        raise HTTPException(status_code=403, detail="forbidden")
+
+    submission.external_problem_id = body.external_problem_id
+    db.commit()
+
+    logger.info(f"submission 수정 | user_id={current_user_id} | submission_id={submission_id} | external_problem_id={body.external_problem_id}")
+    return {"submission_id": submission_id, "external_problem_id": body.external_problem_id}
 
 
 @router.get("/history/submissions", response_model=SubmissionListResponse)
