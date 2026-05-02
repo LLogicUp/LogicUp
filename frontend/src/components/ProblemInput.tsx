@@ -1,3 +1,4 @@
+import Card from './ui/Card';
 import type { Source } from './Header';
 
 interface ProblemInputProps {
@@ -25,7 +26,7 @@ function ProblemInput({
 }: ProblemInputProps) {
   if (source === 'direct') {
     return (
-      <>
+      <Card title="문제 입력">
         <div className="input-field">
           <label>문제 설명</label>
           <textarea
@@ -55,29 +56,31 @@ function ProblemInput({
             />
           </div>
         </div>
-      </>
+      </Card>
     );
   }
 
   if (source === 'baekjoon') {
     return (
-      <div className="input-field">
-        <label>백준 문제 번호</label>
-        <input
-          type="text"
-          className="problem-number-input"
-          value={problemNumber}
-          onChange={(e) => onProblemNumberChange(e.target.value)}
-          placeholder="문제 번호를 입력하세요 (예: 1000)"
-        />
-      </div>
+      <Card title="백준 문제">
+        <div className="input-field">
+          <label>문제 번호</label>
+          <input
+            type="text"
+            className="problem-number-input"
+            value={problemNumber}
+            onChange={(e) => onProblemNumberChange(e.target.value)}
+            placeholder="문제 번호를 입력하세요 (예: 1000)"
+          />
+        </div>
+      </Card>
     );
   }
 
   return (
-    <div className="input-field">
+    <Card title="문제 입력">
       <p className="hint-placeholder">준비 중입니다.</p>
-    </div>
+    </Card>
   );
 }
 
