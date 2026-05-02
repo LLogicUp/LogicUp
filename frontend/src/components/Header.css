@@ -1,0 +1,144 @@
+.lu-header {
+  background: linear-gradient(180deg, var(--burgundy-primary) 0%, var(--burgundy-deep) 100%);
+  color: var(--text-on-burgundy);
+  padding: 18px 56px 0;
+}
+
+.lu-header__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+/* 로고 */
+.lu-header__logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.lu-header__logo-mark {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  color: var(--burgundy-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.5px;
+  flex-shrink: 0;
+}
+
+.lu-header__logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.lu-header__logo-ko {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.lu-header__logo-en {
+  font-size: 10px;
+  opacity: 0.8;
+  letter-spacing: 3px;
+}
+
+/* 유틸 버튼 */
+.lu-header__utils {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.lu-header__greet {
+  opacity: 0.95;
+}
+
+.lu-header__util-btn {
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: transparent;
+  color: var(--text-on-burgundy);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-family: var(--font-family);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s;
+}
+
+.lu-header__util-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* 탭 */
+.lu-header__tabs {
+  display: flex;
+  gap: 32px;
+  padding: 16px 0 0;
+  margin-top: 12px;
+}
+
+.lu-header__tab {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 15px;
+  font-weight: 500;
+  font-family: var(--font-family);
+  padding: 8px 0;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.lu-header__tab:hover {
+  color: var(--text-on-burgundy);
+}
+
+.lu-header__tab--active {
+  color: var(--text-on-burgundy);
+  font-weight: 700;
+  border-bottom-color: #fff;
+}
+
+/* 반응형 */
+@media (max-width: 1024px) {
+  .lu-header {
+    padding: 16px 32px 0;
+  }
+  .lu-header__tabs {
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .lu-header {
+    padding: 14px 16px 0;
+  }
+  .lu-header__logo-en {
+    display: none;
+  }
+  .lu-header__greet {
+    display: none;
+  }
+  .lu-header__tabs {
+    gap: 12px;
+    overflow-x: auto;
+  }
+  .lu-header__tab {
+    font-size: 13px;
+    white-space: nowrap;
+  }
+}

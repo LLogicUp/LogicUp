@@ -1,11 +1,7 @@
-export type Source = 'direct' | 'baekjoon' | 'oj';
-export type ViewMode = 'editor' | 'history' | 'quiz';
+import './Header.css';
 
-const SOURCE_LABELS: Record<Source, string> = {
-  direct: '직접 입력',
-  baekjoon: '백준',
-  oj: 'OJ',
-};
+export type Source = 'direct' | 'baekjoon' | 'oj';
+export type ViewMode = 'home' | 'editor' | 'history' | 'quiz';
 
 interface HeaderProps {
   source: Source;
@@ -16,49 +12,66 @@ interface HeaderProps {
   onLogout: () => void;
 }
 
+type Tab =
+  | { kind: 'view'; label: string; mode: ViewMode }
+  | { kind: 'source'; label: string; source: Source };
+
+const TABS: Tab[] = [
+  { kind: 'view',   label: '홈',       mode: 'home' },
+  { kind: 'source', label: '직접 입력', source: 'direct' },
+  { kind: 'source', label: '백준',     source: 'baekjoon' },
+  { kind: 'source', label: 'OJ',       source: 'oj' },
+  { kind: 'view',   label: '히스토리', mode: 'history' },
+  { kind: 'view',   label: '퀴즈',     mode: 'quiz' },
+];
+
+function isActive(tab: Tab, viewMode: ViewMode, source: Source): boolean {
+  if (tab.kind === 'view') return viewMode === tab.mode;
+  return viewMode === 'editor' && source === tab.source;
+}
+
 function Header({ source, onSourceChange, viewMode, onViewModeChange, userid, onLogout }: HeaderProps) {
+  const handleTabClick = (tab: Tab) => {
+    if (tab.kind === 'view') {
+      onViewModeChange(tab.mode);
+    } else {
+      onSourceChange(tab.source);
+      onViewModeChange('editor');
+    }
+  };
+
   return (
-    <header className="App-header">
-      <h1>LogicUp</h1>
-      <div className="header-controls">
-        {viewMode === 'editor' && (
-          <nav className="nav-tabs">
-            {(Object.keys(SOURCE_LABELS) as Source[]).map((s) => (
-              <button
-                key={s}
-                className={`nav-tab${source === s ? ' active' : ''}`}
-                onClick={() => onSourceChange(s)}
-              >
-                {SOURCE_LABELS[s]}
-              </button>
-            ))}
-          </nav>
-        )}
-        <div className="view-toggle">
-          <button
-            className={`nav-tab${viewMode === 'editor' ? ' active' : ''}`}
-            onClick={() => onViewModeChange('editor')}
-          >
-            에디터
-          </button>
-          <button
-            className={`nav-tab${viewMode === 'history' ? ' active' : ''}`}
-            onClick={() => onViewModeChange('history')}
-          >
-            히스토리
-          </button>
-          <button
-            className={`nav-tab${viewMode === 'quiz' ? ' active' : ''}`}
-            onClick={() => onViewModeChange('quiz')}
-          >
-            퀴즈
-          </button>
+    <header className="lu-header">
+      <div className="lu-header__top">
+        <div className="lu-header__logo">
+          <div className="lu-header__logo-mark">L</div>
+          <div className="lu-header__logo-text">
+            <span className="lu-header__logo-ko">LogicUp</span>
+          </div>
         </div>
-        <div className="user-info">
-          <span className="userid">{userid}</span>
-          <button className="logout-button" onClick={onLogout}>로그아웃</button>
+
+        <div className="lu-header__utils">
+          <span className="lu-header__greet"><b>{userid}</b>님 안녕하세요.</span>
+          <button className="lu-header__util-btn" onClick={onLogout}>🔓 로그아웃</button>
         </div>
       </div>
+
+      <nav className="lu-header__tabs" role="tablist">
+        {TABS.map((tab) => {
+          const active = isActive(tab, viewMode, source);
+          return (
+            <button
+              key={tab.label}
+              role="tab"
+              aria-selected={active}
+              className={`lu-header__tab${active ? ' lu-header__tab--active' : ''}`}
+              onClick={() => handleTabClick(tab)}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </nav>
     </header>
   );
 }

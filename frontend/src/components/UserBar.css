@@ -1,0 +1,72 @@
+.lu-user-bar {
+  background: var(--bg-card);
+  padding: 20px 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.lu-user-bar__name {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  color: var(--text-primary);
+}
+
+.lu-user-bar__stats {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--text-secondary);
+}
+
+.lu-user-bar__stat-icon {
+  width: 36px;
+  height: 36px;
+  background: var(--bg-page);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+}
+
+.lu-user-bar__stat-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lu-user-bar__stat-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+}
+
+.lu-user-bar__stat-lbl {
+  color: var(--text-muted);
+  width: 60px;
+}
+
+.lu-user-bar__stat-val {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+@media (max-width: 1024px) {
+  .lu-user-bar {
+    padding: 16px 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .lu-user-bar {
+    padding: 14px 16px;
+  }
+  .lu-user-bar__name {
+    font-size: 20px;
+  }
+}
