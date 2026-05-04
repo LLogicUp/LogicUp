@@ -1,38 +1,21 @@
-import type { QuizSetSummary, CategoryStat } from '../../api/quiz';
+import type { QuizSetSummary } from '../../api/quiz';
 
 interface QuizSetListProps {
   sets: QuizSetSummary[];
-  categories: CategoryStat[];
-  activeCategory: string | null;
-  onCategoryChange: (cat: string | null) => void;
   onStart: (setId: number) => void;
+  onGenerate: () => void;
+  isGenerating: boolean;
 }
 
-function QuizSetList({ sets, categories, activeCategory, onCategoryChange, onStart }: QuizSetListProps) {
+function QuizSetList({ sets, onStart, onGenerate, isGenerating }: QuizSetListProps) {
   return (
     <div className="quiz-set-list">
-      <h2>퀴즈 목록</h2>
-
-      {categories.length > 0 && (
-        <div className="quiz-category-filter">
-          <button
-            className={`quiz-category-btn${activeCategory === null ? ' active' : ''}`}
-            onClick={() => onCategoryChange(null)}
-          >
-            전체
-          </button>
-          {categories.map((c) => (
-            <button
-              key={c.category}
-              className={`quiz-category-btn${activeCategory === c.category ? ' active' : ''}`}
-              onClick={() => onCategoryChange(c.category)}
-            >
-              {c.category}
-              <span className="quiz-category-count">{c.count}</span>
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="quiz-list-header">
+        <h2>퀴즈 목록</h2>
+        <button className="quiz-generate-btn" onClick={onGenerate} disabled={isGenerating}>
+          {isGenerating ? '생성 중...' : '새 퀴즈 생성'}
+        </button>
+      </div>
 
       <div className="quiz-cards">
         {sets.map((s) => (

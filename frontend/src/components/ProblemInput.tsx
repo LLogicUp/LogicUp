@@ -18,7 +18,8 @@ function ProblemInput({
   problem,
   expectedInput,
   expectedOutput,
-  problemUrl,
+  problemNumber,
+  locked = false,
   onProblemChange,
   onExpectedInputChange,
   onExpectedOutputChange,
@@ -34,6 +35,7 @@ function ProblemInput({
             onChange={(e) => onProblemChange(e.target.value)}
             placeholder="문제를 입력하세요 (선택)"
             rows={4}
+            disabled={locked}
           />
         </div>
         <div className="example-row">
@@ -44,6 +46,7 @@ function ProblemInput({
               onChange={(e) => onExpectedInputChange(e.target.value)}
               placeholder="입력 예시 (선택)"
               rows={3}
+              disabled={locked}
             />
           </div>
           <div className="input-field">
@@ -53,6 +56,7 @@ function ProblemInput({
               onChange={(e) => onExpectedOutputChange(e.target.value)}
               placeholder="출력 예시 (선택)"
               rows={3}
+              disabled={locked}
             />
           </div>
         </div>

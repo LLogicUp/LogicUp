@@ -12,6 +12,7 @@ import {
   fetchQuizSets,
   fetchQuizSet,
   submitQuiz,
+  generateQuiz,
 } from '../../api/quiz';
 import QuizSetList from './QuizSetList';
 import QuizSession from './QuizSession';
@@ -24,28 +25,28 @@ interface QuizPageProps {
 function QuizPage({ onUnauthorized }: QuizPageProps) {
   const [screen, setScreen] = useState<QuizScreenState>('loading');
   const [sets, setSets] = useState<QuizSetSummary[]>([]);
-  const [categories, setCategories] = useState<CategoryStat[]>([]);
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [error, setError] = useState('');
 
+  const [isGenerating, setIsGenerating] = useState(false);
   const [activeSetId, setActiveSetId] = useState<number | null>(null);
   const [activeTitle, setActiveTitle] = useState('');
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [result, setResult] = useState<QuizSubmitResult | null>(null);
 
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [availableCategories, setAvailableCategories] = useState<CategoryStat[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+
   function handleUnauthorized() {
     onUnauthorized?.();
   }
 
-  const loadSets = useCallback(async (category: string | null = null) => {
+  const loadSets = useCallback(async () => {
     setScreen('loading');
     setError('');
     try {
-      const [cats, data] = await Promise.all([
-        fetchQuizCategories(),
-        fetchQuizSets(category),
-      ]);
-      setCategories(cats);
+      const data = await fetchQuizSets(null);
       setSets(data);
       setScreen(data.length === 0 ? 'empty' : 'list');
     } catch (e) {
@@ -60,24 +61,50 @@ function QuizPage({ onUnauthorized }: QuizPageProps) {
   }, []);
 
   useEffect(() => {
-    loadSets(null);
+    loadSets();
   }, [loadSets]);
 
-  async function handleCategoryChange(cat: string | null) {
-    setActiveCategory(cat);
-    setScreen('loading');
+  async function handleOpenGenerateModal() {
+    setShowGenerateModal(true);
+    if (availableCategories.length > 0) return;
+    setCategoriesLoading(true);
+    try {
+      const cats = await fetchQuizCategories();
+      setAvailableCategories(cats);
+      setSelectedCategories(cats.slice(0, 3).map((c) => c.category));
+    } catch (e) {
+      if (e instanceof Error && e.message === 'Unauthorized') handleUnauthorized();
+    } finally {
+      setCategoriesLoading(false);
+    }
+  }
+
+  function handleToggleCategory(cat: string) {
+    setSelectedCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+    );
+  }
+
+  async function handleGenerate() {
+    setShowGenerateModal(false);
+    setIsGenerating(true);
     setError('');
     try {
-      const data = await fetchQuizSets(cat);
-      setSets(data);
-      setScreen(data.length === 0 ? 'empty' : 'list');
+      const data = await generateQuiz(3, selectedCategories);
+      setActiveSetId(data.id);
+      setActiveTitle(data.title);
+      setQuestions(data.questions);
+      setResult(null);
+      setScreen('session');
     } catch (e) {
       if (e instanceof Error && e.message === 'Unauthorized') {
         handleUnauthorized();
         return;
       }
-      setError(e instanceof Error ? e.message : '퀴즈 목록을 불러오지 못했습니다.');
+      setError(e instanceof Error ? e.message : '퀴즈 생성에 실패했습니다.');
       setScreen('error');
+    } finally {
+      setIsGenerating(false);
     }
   }
 
@@ -132,14 +159,32 @@ function QuizPage({ onUnauthorized }: QuizPageProps) {
   }
 
   if (screen === 'empty') {
-    return <div className="quiz-status">아직 퀴즈가 없습니다.</div>;
+    return (
+      <div className="quiz-status">
+        <p>아직 퀴즈가 없습니다.</p>
+        <button onClick={handleOpenGenerateModal} disabled={isGenerating}>
+          {isGenerating ? '퀴즈 생성 중...' : '퀴즈 생성하기'}
+        </button>
+        {showGenerateModal && (
+          <GenerateModal
+            categories={availableCategories}
+            selected={selectedCategories}
+            loading={categoriesLoading}
+            isGenerating={isGenerating}
+            onToggle={handleToggleCategory}
+            onConfirm={handleGenerate}
+            onClose={() => setShowGenerateModal(false)}
+          />
+        )}
+      </div>
+    );
   }
 
   if (screen === 'error') {
     return (
       <div className="quiz-status quiz-error">
         <p>{error}</p>
-        <button onClick={() => loadSets(activeCategory)}>다시 시도</button>
+        <button onClick={loadSets}>다시 시도</button>
       </div>
     );
   }
@@ -149,11 +194,21 @@ function QuizPage({ onUnauthorized }: QuizPageProps) {
       <div className="quiz-page">
         <QuizSetList
           sets={sets}
-          categories={categories}
-          activeCategory={activeCategory}
-          onCategoryChange={handleCategoryChange}
           onStart={handleStart}
+          onGenerate={handleOpenGenerateModal}
+          isGenerating={isGenerating}
         />
+        {showGenerateModal && (
+          <GenerateModal
+            categories={availableCategories}
+            selected={selectedCategories}
+            loading={categoriesLoading}
+            isGenerating={isGenerating}
+            onToggle={handleToggleCategory}
+            onConfirm={handleGenerate}
+            onClose={() => setShowGenerateModal(false)}
+          />
+        )}
       </div>
     );
   }
@@ -181,6 +236,58 @@ function QuizPage({ onUnauthorized }: QuizPageProps) {
   }
 
   return null;
+}
+
+interface GenerateModalProps {
+  categories: CategoryStat[];
+  selected: string[];
+  loading: boolean;
+  isGenerating: boolean;
+  onToggle: (cat: string) => void;
+  onConfirm: () => void;
+  onClose: () => void;
+}
+
+function GenerateModal({ categories, selected, loading, isGenerating, onToggle, onConfirm, onClose }: GenerateModalProps) {
+  return (
+    <div className="gen-modal-overlay" onClick={onClose}>
+      <div className="gen-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="gen-modal-header">
+          <span>출제 유형 선택</span>
+          <button className="gen-modal-close" onClick={onClose}>✕</button>
+        </div>
+        <p className="gen-modal-desc">집중 학습할 오류 유형을 선택하세요.</p>
+        {loading ? (
+          <div className="gen-modal-loading">불러오는 중...</div>
+        ) : categories.length === 0 ? (
+          <p className="gen-modal-empty">힌트 기록이 없습니다. 먼저 힌트를 받아보세요.</p>
+        ) : (
+          <div className="gen-modal-list">
+            {categories.map((c) => (
+              <label key={c.category} className="gen-modal-item">
+                <input
+                  type="checkbox"
+                  checked={selected.includes(c.category)}
+                  onChange={() => onToggle(c.category)}
+                />
+                <span className="gen-modal-cat">{c.category}</span>
+                <span className="gen-modal-count">{c.count}회</span>
+              </label>
+            ))}
+          </div>
+        )}
+        <div className="gen-modal-footer">
+          <button
+            className="gen-modal-btn"
+            onClick={onConfirm}
+            disabled={isGenerating || selected.length === 0 || categories.length === 0}
+          >
+            {isGenerating ? '생성 중...' : `${selected.length}개 유형으로 생성`}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default QuizPage;
