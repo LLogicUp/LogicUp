@@ -6,6 +6,7 @@ from sqlalchemy import func, distinct
 from sqlalchemy.orm import Session
 from models import HintRequest
 from boj import fetch_boj_problem
+from programmers import fetch_problem_from_url
 from config import groq_client, logger
 from prompts import SYSTEM_PROMPT, build_prompt
 from database import get_db
@@ -54,6 +55,15 @@ def get_hint(
             expected_output = boj.get("expected_output", "")
             source = "baekjoon"
             external_problem_id = str(request.problem_number)
+        elif request.problem_url:
+            fetched = fetch_problem_from_url(request.problem_url)
+            if not fetched:
+                raise HTTPException(status_code=502, detail="문제를 불러오지 못했습니다")
+            problem = fetched.get("problem", "")
+            expected_input = fetched.get("expected_input", "")
+            expected_output = fetched.get("expected_output", "")
+            source = "url"
+            external_problem_id = request.problem_url
         else:
             problem = request.problem
             expected_input = request.expected_input
