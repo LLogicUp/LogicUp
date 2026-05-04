@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy import func, distinct
 from sqlalchemy.orm import Session
 from models import HintRequest
-from boj import fetch_boj_problem
+from programmers import fetch_problem_from_url
 from config import groq_client, logger
 from prompts import SYSTEM_PROMPT, build_prompt
 from database import get_db
@@ -28,7 +28,7 @@ def get_hint(
     current_user_id: int = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    logger.info(f"힌트 요청 수신 | user_id={current_user_id} | level={request.hint_level} | submission_id={request.submission_id} | problem_number={request.problem_number} | code_length={len(request.code)}")
+    logger.info(f"힌트 요청 수신 | user_id={current_user_id} | level={request.hint_level} | submission_id={request.submission_id} | problem_url={request.problem_url} | code_length={len(request.code)}")
 
     if request.submission_id is not None:
         submission = db.query(Submission).filter(Submission.id == request.submission_id).first()
@@ -47,13 +47,15 @@ def get_hint(
         expected_output = submission.expected_output
         is_new_submission = False
     else:
-        if request.problem_number:
-            boj = fetch_boj_problem(request.problem_number)
-            problem = boj.get("problem", "")
-            expected_input = boj.get("expected_input", "")
-            expected_output = boj.get("expected_output", "")
-            source = "baekjoon"
-            external_problem_id = str(request.problem_number)
+        if request.problem_url:
+            fetched = fetch_problem_from_url(request.problem_url)
+            source = "url"
+            external_problem_id = request.problem_url
+            if not fetched:
+                raise HTTPException(status_code=502, detail="문제를 불러오지 못했습니다")
+            problem = fetched.get("problem", "")
+            expected_input = fetched.get("expected_input", "")
+            expected_output = fetched.get("expected_output", "")
         else:
             problem = request.problem
             expected_input = request.expected_input
@@ -205,7 +207,7 @@ def get_problem_list(
     current_user_id: int = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    logger.info(f"백준 문제 목록 조회 | user_id={current_user_id}")
+    logger.info(f"크롤링 문제 목록 조회 | user_id={current_user_id}")
 
     rows = (
         db.query(
@@ -218,7 +220,7 @@ def get_problem_list(
         .outerjoin(HintCategory, HintCategory.submission_id == Submission.id)
         .filter(
             Submission.user_id == current_user_id,
-            Submission.source == "baekjoon",
+            Submission.source == "url",
             Submission.external_problem_id.isnot(None),
         )
         .group_by(Submission.external_problem_id)

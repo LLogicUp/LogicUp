@@ -97,6 +97,7 @@ class QuizQuestion(Base):
     )
     question_type: Mapped[str] = mapped_column(String(50), nullable=False, default="short_answer")
     content: Mapped[str] = mapped_column(Text, nullable=False)
+    choices: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON 배열, multiple_choice 전용
     correct_answer: Mapped[str] = mapped_column(Text, nullable=False)
     explanation: Mapped[str] = mapped_column(Text, nullable=False, default="")
     categories: Mapped[str] = mapped_column(Text, nullable=False, default="[]")  # JSON 배열 문자열

@@ -49,10 +49,11 @@ def generate_quiz(
     prompt = (
         f"C언어 프로그래밍 퀴즈를 {request.count}개 생성하세요.\n"
         f"다음 카테고리를 중심으로 출제하세요: {categories_str}\n\n"
-        "각 문제는 학생이 텍스트로 답할 수 있는 주관식 문제입니다.\n"
+        f"문제 유형을 섞어서 출제하세요: short_answer(주관식)와 multiple_choice(4지선다)를 적절히 혼합하세요.\n"
         "반드시 다음 JSON 형식으로만 응답하세요:\n"
         '{"questions": ['
-        '{"content": "문제 내용", "correct_answer": "기준 답안", "explanation": "해설", "categories": ["카테고리1"]}'
+        '{"question_type": "short_answer", "content": "문제 내용", "choices": null, "correct_answer": "기준 답안", "explanation": "해설", "categories": ["카테고리1"]},'
+        '{"question_type": "multiple_choice", "content": "문제 내용", "choices": ["보기1", "보기2", "보기3", "보기4"], "correct_answer": "보기1", "explanation": "해설", "categories": ["카테고리1"]}'
         "]}"
     )
 
@@ -77,10 +78,12 @@ def generate_quiz(
     db.flush()
 
     for q in questions_data:
+        choices = q.get("choices")
         question = QuizQuestion(
             set_id=quiz_set.id,
-            question_type="short_answer",
+            question_type=q.get("question_type", "short_answer"),
             content=q.get("content", ""),
+            choices=json.dumps(choices, ensure_ascii=False) if choices else None,
             correct_answer=q.get("correct_answer", ""),
             explanation=q.get("explanation", ""),
             categories=json.dumps(q.get("categories", []), ensure_ascii=False),
@@ -100,6 +103,7 @@ def generate_quiz(
                 "id": q.id,
                 "question_type": q.question_type,
                 "content": q.content,
+                "choices": json.loads(q.choices) if q.choices else None,
                 "categories": json.loads(q.categories) if q.categories else [],
             }
             for q in quiz_set.questions
@@ -187,6 +191,7 @@ def get_quiz_set(
                 "id": q.id,
                 "question_type": q.question_type,
                 "content": q.content,
+                "choices": json.loads(q.choices) if q.choices else None,
                 "categories": json.loads(q.categories) if q.categories else [],
             }
             for q in s.questions
@@ -226,26 +231,28 @@ def submit_quiz(
         if not q:
             continue
 
-        prompt = (
-            f"다음은 프로그래밍 퀴즈 채점입니다.\n"
-            f"문제: {q.content}\n"
-            f"기준 답안: {q.correct_answer}\n"
-            f"학생 답안: {answer.user_answer}\n\n"
-            "학생 답안이 기준 답안과 같은 의미이면 정답으로 판단하세요. "
-            "반드시 다음 JSON 형식으로만 응답하세요: "
-            '{"is_correct": true}'
-        )
-
-        try:
-            res = groq_client.chat.completions.create(
-                model="openai/gpt-oss-120b",
-                response_format={"type": "json_object"},
-                messages=[{"role": "user", "content": prompt}],
+        if q.question_type == "multiple_choice":
+            is_correct = answer.user_answer.strip() == q.correct_answer.strip()
+        else:
+            prompt = (
+                f"다음은 프로그래밍 퀴즈 채점입니다.\n"
+                f"문제: {q.content}\n"
+                f"기준 답안: {q.correct_answer}\n"
+                f"학생 답안: {answer.user_answer}\n\n"
+                "학생 답안이 기준 답안과 같은 의미이면 정답으로 판단하세요. "
+                "반드시 다음 JSON 형식으로만 응답하세요: "
+                '{"is_correct": true}'
             )
-            is_correct = json.loads(res.choices[0].message.content).get("is_correct", False)
-        except Exception:
-            logger.exception(f"채점 LLM 오류 | question_id={q.id}")
-            is_correct = False
+            try:
+                res = groq_client.chat.completions.create(
+                    model="openai/gpt-oss-120b",
+                    response_format={"type": "json_object"},
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                is_correct = json.loads(res.choices[0].message.content).get("is_correct", False)
+            except Exception:
+                logger.exception(f"채점 LLM 오류 | question_id={q.id}")
+                is_correct = False
 
         if is_correct:
             score += 1

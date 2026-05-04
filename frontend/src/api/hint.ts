@@ -3,7 +3,7 @@ import { authHeaders, clearToken } from './auth';
 export interface HintRequest {
   submission_id: number | null;
   problem?: string;
-  problem_number?: number;
+  problem_url?: string;
   code: string;
   expected_input?: string;
   expected_output?: string;
