@@ -17,7 +17,7 @@
 
 .lu-card__title {
   margin: 0;
-  font-size: 17px;
+  font-size: 0.9rem;
   font-weight: 800;
   letter-spacing: -0.4px;
   color: var(--text-primary);
@@ -27,7 +27,7 @@
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: 18px;
+  font-size: 0.95rem;
   line-height: 1;
   cursor: pointer;
   padding: 0;

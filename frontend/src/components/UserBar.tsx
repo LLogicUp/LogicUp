@@ -25,7 +25,6 @@ export default function UserBar({ userid, onUnauthorized }: UserBarProps) {
       </div>
 
       <div className="lu-user-bar__stats">
-        <div className="lu-user-bar__stat-icon">📚</div>
         <div className="lu-user-bar__stat-rows">
           <div className="lu-user-bar__stat-row">
             <span className="lu-user-bar__stat-lbl">총 제출</span>

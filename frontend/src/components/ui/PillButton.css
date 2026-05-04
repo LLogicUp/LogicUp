@@ -1,7 +1,7 @@
 .lu-pill {
   border-radius: var(--radius-pill);
   font-family: var(--font-family);
-  font-size: 13px;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   padding: 8px 22px;
