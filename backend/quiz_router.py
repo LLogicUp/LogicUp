@@ -15,7 +15,8 @@ quiz_router = APIRouter(prefix="/quiz")
 # ── POST /quiz/generate ───────────────────────────────────────────────────────
 
 class GenerateRequest(BaseModel):
-    count: int = 3  # 생성할 문제 수
+    count: int = 3
+    categories: list[str] = []
 
 
 @quiz_router.post("/generate")
@@ -24,23 +25,23 @@ def generate_quiz(
     current_user_id: int = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    logger.info(f"퀴즈 생성 요청 | user_id={current_user_id} | count={request.count}")
+    logger.info(f"퀴즈 생성 요청 | user_id={current_user_id} | count={request.count} | categories={request.categories}")
 
-    # 1. 자주 틀리는 카테고리 상위 3개 집계
-    rows = (
-        db.query(HintCategory.category, func.count(HintCategory.id).label("cnt"))
-        .join(Submission, HintCategory.submission_id == Submission.id)
-        .filter(Submission.user_id == current_user_id)
-        .group_by(HintCategory.category)
-        .order_by(func.count(HintCategory.id).desc())
-        .limit(3)
-        .all()
-    )
-
-    if not rows:
-        raise HTTPException(status_code=404, detail="힌트 기록이 없어 퀴즈를 생성할 수 없습니다")
-
-    top_categories = [row.category for row in rows]
+    if request.categories:
+        top_categories = request.categories
+    else:
+        rows = (
+            db.query(HintCategory.category, func.count(HintCategory.id).label("cnt"))
+            .join(Submission, HintCategory.submission_id == Submission.id)
+            .filter(Submission.user_id == current_user_id)
+            .group_by(HintCategory.category)
+            .order_by(func.count(HintCategory.id).desc())
+            .limit(3)
+            .all()
+        )
+        if not rows:
+            raise HTTPException(status_code=404, detail="힌트 기록이 없어 퀴즈를 생성할 수 없습니다")
+        top_categories = [row.category for row in rows]
     categories_str = ", ".join(top_categories)
     logger.info(f"퀴즈 대상 카테고리 | user_id={current_user_id} | categories={top_categories}")
 

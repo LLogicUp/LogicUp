@@ -3,10 +3,11 @@ import Editor from '@monaco-editor/react';
 interface CodeEditorProps {
   code: string;
   isDark: boolean;
+  locked?: boolean;
   onCodeChange: (value: string) => void;
 }
 
-function CodeEditor({ code, isDark, onCodeChange }: CodeEditorProps) {
+function CodeEditor({ code, isDark, locked = false, onCodeChange }: CodeEditorProps) {
   return (
     <>
       <h2>Code Input</h2>
@@ -20,6 +21,7 @@ function CodeEditor({ code, isDark, onCodeChange }: CodeEditorProps) {
           minimap: { enabled: false },
           fontSize: 14,
           scrollBeyondLastLine: false,
+          readOnly: locked,
         }}
       />
     </>
