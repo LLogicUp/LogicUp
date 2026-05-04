@@ -95,3 +95,13 @@ export async function submitQuiz(
     body: JSON.stringify(body),
   });
 }
+
+export async function generateQuiz(
+  count = 3,
+  categories: string[] = []
+): Promise<{ id: number; title: string; questions: QuizQuestion[] }> {
+  return apiFetch('/quiz/generate', {
+    method: 'POST',
+    body: JSON.stringify({ count, categories }),
+  });
+}

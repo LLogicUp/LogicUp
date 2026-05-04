@@ -792,10 +792,80 @@ body {
 }
 
 /* ─── 퀴즈 목록 ─── */
-.quiz-set-list h2 {
-  margin: 0 0 24px;
+.quiz-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.quiz-list-header h2 {
+  margin: 0;
   color: var(--text-primary);
   font-size: 1.4rem;
+}
+
+.quiz-generate-btn {
+  padding: 8px 20px;
+  background: transparent;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-pill);
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.quiz-generate-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--text-on-burgundy);
+}
+
+.quiz-generate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+.quiz-status button {
+  margin-top: 20px;
+  padding: 10px 28px;
+  background: var(--accent);
+  color: var(--text-on-burgundy);
+  border: none;
+  border-radius: var(--radius-pill);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.quiz-status button:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.quiz-status button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.quiz-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.quiz-card-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: rgba(139, 31, 47, 0.08);
+  color: var(--accent);
 }
 
 .quiz-cards {
@@ -1124,4 +1194,124 @@ body {
 
 .quiz-back-to-list:hover {
   background: var(--accent-hover);
+}
+
+/* ─── 퀴즈 생성 모달 ─── */
+.gen-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.gen-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 24px;
+  width: 360px;
+  max-width: 90vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gen-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.gen-modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.gen-modal-desc {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.gen-modal-loading,
+.gen-modal-empty {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 12px 0;
+}
+
+.gen-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: 280px;
+}
+
+.gen-modal-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-soft);
+  transition: border-color 0.15s;
+}
+
+.gen-modal-item:hover {
+  border-color: var(--accent);
+}
+
+.gen-modal-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  flex-shrink: 0;
+}
+
+.gen-modal-cat {
+  flex: 1;
+  font-size: 0.92rem;
+}
+
+.gen-modal-count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.gen-modal-footer {
+  padding-top: 4px;
+}
+
+.gen-modal-btn {
+  width: 100%;
+  padding: 10px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.gen-modal-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.gen-modal-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

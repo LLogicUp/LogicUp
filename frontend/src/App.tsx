@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import Header from './components/Header';
 import UserBar from './components/UserBar';
@@ -60,25 +60,24 @@ function App() {
     }
   }, [navigate]);
 
-  const handleLogin = () => {
-    const t = getToken();
-    setToken(t);
+  const handleLogin = useCallback(() => {
+    setToken(getToken());
     setUserid(getUserid());
-  };
+  }, []);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     clearToken();
     setToken(null);
     setUserid('');
     navigate('/', { replace: true });
-  };
+  }, [navigate]);
 
-  const handleQuizUnauthorized = () => {
+  const handleQuizUnauthorized = useCallback(() => {
     clearToken();
     setToken(null);
     setUserid('');
     navigate('/', { replace: true });
-  };
+  }, [navigate]);
 
   if (!token) {
     return <AuthPanel onLogin={handleLogin} initialError={kakaoError} />;
