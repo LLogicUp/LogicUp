@@ -188,9 +188,18 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
               className="problem-card"
               onClick={() => handleCardClick(card)}
             >
-              <span className="problem-number">{cardLabel(card)}</span>
-              <span className="problem-hint-count">힌트 {card.data.hint_count}회</span>
-              <span className="problem-last-date">{formatDate(cardDate(card))}</span>
+              <div className="problem-card-top">
+                <span className="problem-number">{cardLabel(card)}</span>
+                <span className="problem-hint-count">힌트 {card.data.hint_count}회</span>
+                <span className="problem-last-date">{formatDate(cardDate(card))}</span>
+              </div>
+              {card.data.categories && card.data.categories.length > 0 && (
+                <div className="problem-category-tags">
+                  {card.data.categories.map((cat) => (
+                    <span key={cat} className="problem-category-tag">{cat}</span>
+                  ))}
+                </div>
+              )}
             </button>
             {onGoToQuiz && (
               <button
