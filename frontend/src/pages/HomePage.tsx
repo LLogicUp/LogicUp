@@ -1,9 +1,55 @@
 import { useEffect, useState } from 'react';
 import Card from '../components/ui/Card';
-import PillButton from '../components/ui/PillButton';
-import { fetchHistory, fetchSubmissionList, UnauthorizedError, type HistoryItem } from '../api/history';
+import { fetchHistory, fetchSubmissionList, fetchCategoryStats, UnauthorizedError, type HistoryItem, type CategoryStat } from '../api/history';
 import type { ViewMode, Source } from '../components/Header';
 import './HomePage.css';
+
+function hintCountToLevel(count: number): number {
+  if (count === 0) return 0;
+  if (count === 1) return 1;
+  if (count <= 3) return 2;
+  if (count <= 6) return 3;
+  return 4;
+}
+
+function localDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function calcStreaks(counts: Map<string, number>): { current: number; longest: number } {
+  if (counts.size === 0) return { current: 0, longest: 0 };
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // current streak: check today, fall back to yesterday
+  let current = 0;
+  const start = new Date(today);
+  if (!counts.has(localDateStr(start))) start.setDate(start.getDate() - 1);
+  while (counts.has(localDateStr(start))) {
+    current++;
+    start.setDate(start.getDate() - 1);
+  }
+
+  // longest streak
+  const sorted = Array.from(counts.keys()).sort();
+  let longest = 0;
+  let streak = 0;
+  let prev: Date | null = null;
+  for (const ds of sorted) {
+    const cur = new Date(ds + 'T00:00:00');
+    if (prev) {
+      const diff = Math.round((cur.getTime() - prev.getTime()) / 86400000);
+      streak = diff === 1 ? streak + 1 : 1;
+    } else {
+      streak = 1;
+    }
+    if (streak > longest) longest = streak;
+    prev = cur;
+  }
+
+  return { current, longest };
+}
 
 interface HomePageProps {
   onGoTo: (mode: ViewMode) => void;
@@ -64,21 +110,6 @@ function RecentHintsCard({ onGoTo, onUnauthorized }: { onGoTo: (m: ViewMode) => 
   );
 }
 
-/* ── 오늘의 문제 카드 ── */
-function TodayProblemCard({ onGoToEditor }: { onGoToEditor: (s: Source) => void }) {
-  return (
-    <Card title="오늘의 문제">
-      <div className="hp-today-body">
-        <div className="hp-today-illust">📋</div>
-        <p className="hp-today-text">현재 풀이 중인 문제가 없습니다.</p>
-        <PillButton variant="primary" onClick={() => onGoToEditor('direct')}>
-          ＋ 새 문제 시작하기
-        </PillButton>
-      </div>
-    </Card>
-  );
-}
-
 /* ── 바로가기 카드 ── */
 const SHORTCUTS: { icon: string; label: string; mode: ViewMode | null; source?: Source }[] = [
   { icon: '📝', label: '직접 입력', mode: 'editor', source: 'direct' },
@@ -106,106 +137,132 @@ function ShortcutCard({ onGoTo, onGoToEditor }: { onGoTo: (m: ViewMode) => void;
   );
 }
 
-/* ── 코드 에디터 미니 카드 ── */
-function EditorMiniCard({ onGoToEditor }: { onGoToEditor: (s: Source) => void }) {
-  return (
-    <Card title="코드 에디터" onPlus={() => onGoToEditor('direct')} className="hp-editor-card">
-      <div className="hp-editor-mock">
-        <span className="hp-code-cmt"># 직접 입력 또는 백준 탭에서 문제를 선택하세요</span>
-        {'\n'}
-        <span className="hp-code-kw">def</span>{' '}
-        <span className="hp-code-fn">solve</span>():
-        {'\n    '}
-        <span className="hp-code-fn">pass</span>
-      </div>
-      <div className="hp-editor-footer">
-        <PillButton variant="primary" onClick={() => onGoToEditor('direct')}>
-          에디터 열기 →
-        </PillButton>
-      </div>
-    </Card>
-  );
-}
-
-/* ── 학습 캘린더 카드 ── */
-function CalendarCard({ onUnauthorized }: { onUnauthorized: () => void }) {
-  const [activeDates, setActiveDates] = useState<Set<string>>(new Set());
-  const [offset, setOffset] = useState(0); // 현재 월 기준 오프셋
+/* ── 학습 활동 카드 ── */
+function ActivityCard({ onUnauthorized }: { onUnauthorized: () => void }) {
+  const [hintCounts, setHintCounts] = useState<Map<string, number>>(new Map());
+  const [totalSubmissions, setTotalSubmissions] = useState(0);
+  const [totalHints, setTotalHints] = useState(0);
+  const [categoryStats, setCategoryStats] = useState<CategoryStat[]>([]);
 
   useEffect(() => {
     const controller = new AbortController();
     fetchSubmissionList()
       .then((res) => {
         if (controller.signal.aborted) return;
-        setActiveDates(new Set(res.items.map((s) => s.last_hint_at.slice(0, 10))));
+        const counts = new Map<string, number>();
+        res.items.forEach((s) => {
+          const date = s.last_hint_at.slice(0, 10);
+          counts.set(date, (counts.get(date) ?? 0) + s.hint_count);
+        });
+        setHintCounts(counts);
+        setTotalSubmissions(res.items.length);
+        setTotalHints(res.items.reduce((sum, s) => sum + s.hint_count, 0));
       })
       .catch((err) => { if (!controller.signal.aborted && err instanceof UnauthorizedError) onUnauthorized(); });
+
+    fetchCategoryStats()
+      .then((res) => { if (!controller.signal.aborted) setCategoryStats(res.items); })
+      .catch((err) => { if (!controller.signal.aborted && err instanceof UnauthorizedError) onUnauthorized(); });
+
     return () => controller.abort();
   }, [onUnauthorized]);
 
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + offset;
-  const baseDate = new Date(year, month, 1);
-  const displayYear = baseDate.getFullYear();
-  const displayMonth = baseDate.getMonth();
+  const { current: currentStreak, longest: longestStreak } = calcStreaks(hintCounts);
+  const activeDays = hintCounts.size;
 
-  const firstDow = new Date(displayYear, displayMonth, 1).getDay();
-  const lastDay = new Date(displayYear, displayMonth + 1, 0).getDate();
-  const prevLastDay = new Date(displayYear, displayMonth, 0).getDate();
+  // contribution graph: last 26 weeks (Sun~Sat columns)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStr = localDateStr(today);
 
-  const todayStr = now.toISOString().slice(0, 10);
+  const graphEnd = new Date(today);
+  const graphStart = new Date(today);
+  graphStart.setDate(graphStart.getDate() - graphStart.getDay()); // 이번 주 일요일
+  graphStart.setDate(graphStart.getDate() - 25 * 7);              // 26주 전 일요일
 
-  const cells: { day: number; type: 'prev' | 'cur' | 'next'; dateStr: string }[] = [];
-  for (let i = firstDow - 1; i >= 0; i--) {
-    const d = prevLastDay - i;
-    cells.push({ day: d, type: 'prev', dateStr: '' });
-  }
-  for (let d = 1; d <= lastDay; d++) {
-    const dateStr = `${displayYear}-${String(displayMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    cells.push({ day: d, type: 'cur', dateStr });
-  }
-  const remaining = 7 - (cells.length % 7);
-  if (remaining < 7) {
-    for (let d = 1; d <= remaining; d++) {
-      cells.push({ day: d, type: 'next', dateStr: '' });
+  const weeks: { dateStr: string; count: number; isFuture: boolean }[][] = [];
+  const cur = new Date(graphStart);
+  while (cur <= graphEnd || weeks[weeks.length - 1]?.length < 7) {
+    if (weeks.length === 0 || weeks[weeks.length - 1].length === 7) {
+      weeks.push([]);
     }
+    const ds = localDateStr(cur);
+    weeks[weeks.length - 1].push({
+      dateStr: ds,
+      count: hintCounts.get(ds) ?? 0,
+      isFuture: cur > today,
+    });
+    cur.setDate(cur.getDate() + 1);
   }
 
-  return (
-    <Card title="학습 캘린더">
-      <div className="hp-cal-head">
-        <button className="hp-cal-nav" onClick={() => setOffset((o) => o - 1)}>{'<'}</button>
-        <span>{displayYear}. {displayMonth + 1}</span>
-        <button className="hp-cal-nav" onClick={() => setOffset((o) => o + 1)}>{'>'}</button>
-      </div>
-      <div className="hp-cal-grid">
-        {['일', '월', '화', '수', '목', '금', '토'].map((d, i) => (
-          <div key={d} className={`hp-cal-dow${i === 0 ? ' hp-cal-dow--sun' : i === 6 ? ' hp-cal-dow--sat' : ''}`}>{d}</div>
-        ))}
-        {cells.map((c, i) => {
-          const isMuted = c.type !== 'cur';
-          const isToday = c.dateStr === todayStr;
-          const hasActivity = activeDates.has(c.dateStr);
-          let cls = 'hp-cal-day';
-          if (isMuted) cls += ' hp-cal-day--muted';
-          else if (hasActivity) cls += ' hp-cal-day--has';
-          else if (isToday) cls += ' hp-cal-day--today';
-          return <div key={i} className={cls}>{c.day}</div>;
-        })}
-      </div>
-    </Card>
-  );
-}
+  const STATS = [
+    { label: '총 제출', value: String(totalSubmissions) },
+    { label: '총 힌트', value: String(totalHints) },
+    { label: '활성 일수', value: String(activeDays) },
+    { label: '현재 연속', value: `${currentStreak}일` },
+    { label: '최장 연속', value: `${longestStreak}일` },
+  ];
 
-/* ── 알림 카드 ── */
-function NoticeCard() {
+  const maxCount = categoryStats.length > 0 ? Math.max(...categoryStats.map((s) => s.count)) : 1;
+  const totalCatCount = categoryStats.reduce((sum, s) => sum + s.count, 0);
+
   return (
-    <Card title="알림">
-      <p className="hp-notice-msg">
-        새로운 힌트가 도착하면<br />
-        이곳에 표시됩니다.
-      </p>
+    <Card title="학습 활동">
+      <div className="hp-act-stats">
+        {STATS.map((s) => (
+          <div key={s.label} className="hp-act-stat">
+            <span className="hp-act-stat-label">{s.label}</span>
+            <span className="hp-act-stat-value">{s.value}</span>
+          </div>
+        ))}
+      </div>
+      <div className="hp-act-body">
+        <div className="hp-contrib-wrap">
+          <div className="hp-contrib-days">
+            {['일', '월', '화', '수', '목', '금', '토'].map((d) => (
+              <span key={d}>{d}</span>
+            ))}
+          </div>
+          <div className="hp-contrib-graph">
+            {weeks.map((week, wi) => (
+              <div key={wi} className="hp-contrib-col">
+                {week.map((day, di) => {
+                  const level = day.isFuture ? -1 : hintCountToLevel(day.count);
+                  let cls = 'hp-contrib-cell';
+                  if (level > 0) cls += ` hp-contrib-cell--l${level}`;
+                  if (day.dateStr === todayStr) cls += ' hp-contrib-cell--today';
+                  return (
+                    <div
+                      key={di}
+                      className={cls}
+                      title={day.count > 0 ? `${day.dateStr} · 힌트 ${day.count}개` : day.dateStr}
+                    />
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+        {categoryStats.length > 0 && (
+          <div className="hp-error-chart">
+            <div className="hp-error-chart-title">오류 유형 분포</div>
+            {categoryStats.map((s) => {
+              const relWidth = Math.round((s.count / maxCount) * 100);
+              const pct = Math.round((s.count / totalCatCount) * 100);
+              if (pct === 0) return null;
+              return (
+                <div key={s.category} className="hp-error-row">
+                  <span className="hp-error-label">{s.category}</span>
+                  <div className="hp-error-bar-wrap">
+                    <div className="hp-error-bar" style={{ width: `${relWidth}%` }} />
+                  </div>
+                  <span className="hp-error-pct">{pct}%</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </Card>
   );
 }
@@ -215,11 +272,8 @@ export default function HomePage({ onGoTo, onGoToEditor, onUnauthorized }: HomeP
   return (
     <div className="hp-grid">
       <RecentHintsCard onGoTo={onGoTo} onUnauthorized={onUnauthorized} />
-      <TodayProblemCard onGoToEditor={onGoToEditor} />
       <ShortcutCard onGoTo={onGoTo} onGoToEditor={onGoToEditor} />
-      <EditorMiniCard onGoToEditor={onGoToEditor} />
-      <CalendarCard onUnauthorized={onUnauthorized} />
-      <NoticeCard />
+      <ActivityCard onUnauthorized={onUnauthorized} />
     </div>
   );
 }

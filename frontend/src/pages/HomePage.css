@@ -1,16 +1,14 @@
 .hp-grid {
   padding: 24px 56px 60px;
   display: grid;
-  grid-template-columns: 1fr 1fr 240px;
+  grid-template-columns: 1fr 240px;
   gap: 20px;
   background: var(--bg-page);
 }
 
-/* 2행 아이템들 (4~6번째 카드) */
-.hp-grid > :nth-child(4),
-.hp-grid > :nth-child(5),
-.hp-grid > :nth-child(6) {
-  /* grid에서 자동 2행으로 배치됨 */
+/* 3번째 카드(캘린더)는 전체 너비 */
+.hp-grid > :nth-child(3) {
+  grid-column: 1 / -1;
 }
 
 /* ── 필터 행 ── */
@@ -20,7 +18,7 @@
   border-bottom: 1px solid var(--border-soft);
   padding-bottom: 8px;
   margin-bottom: 6px;
-  font-size: 13px;
+  font-size: 0.75rem;
 }
 
 .hp-filter {
@@ -54,7 +52,7 @@
   align-items: center;
   padding: 10px 0;
   border-bottom: 1px solid var(--border-soft);
-  font-size: 13px;
+  font-size: 0.75rem;
 }
 
 .hp-hint-row:last-child {
@@ -73,7 +71,7 @@
   display: inline-block;
   padding: 2px 7px;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 0.65rem;
   font-weight: 600;
   margin-right: 6px;
 }
@@ -83,7 +81,7 @@
 
 .hp-hint-date {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 0.7rem;
   white-space: nowrap;
 }
 
@@ -91,7 +89,7 @@
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 0.7rem;
   cursor: pointer;
   padding: 10px 0 0;
   font-family: var(--font-family);
@@ -105,37 +103,9 @@
 
 .hp-empty {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.75rem;
   text-align: center;
   padding: 24px 0;
-  margin: 0;
-}
-
-/* ── 오늘의 문제 ── */
-.hp-today-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 0;
-  gap: 16px;
-}
-
-.hp-today-illust {
-  width: 80px;
-  height: 80px;
-  background: var(--accent-red-soft);
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36px;
-}
-
-.hp-today-text {
-  color: var(--text-muted);
-  font-size: 14px;
   margin: 0;
 }
 
@@ -159,7 +129,7 @@
   gap: 8px;
   cursor: pointer;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 0.7rem;
   font-family: var(--font-family);
   padding: 0;
 }
@@ -173,7 +143,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 1rem;
   transition: background 0.15s;
 }
 
@@ -181,120 +151,169 @@
   background: var(--accent-red-soft);
 }
 
-/* ── 에디터 미니 ── */
-.hp-editor-card {
-  min-height: 220px;
-}
-
-.hp-editor-mock {
-  flex: 1;
-  background: #1E1E1E;
+/* ── 학습 활동 카드 ── */
+.hp-act-stats {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-soft);
   border-radius: 8px;
-  padding: 14px 16px;
-  font-family: 'JetBrains Mono', Consolas, 'Courier New', monospace;
-  font-size: 12px;
-  color: #D4D4D4;
-  line-height: 1.8;
-  margin-bottom: 12px;
-  white-space: pre;
   overflow: hidden;
 }
 
-.hp-code-kw  { color: #569CD6; }
-.hp-code-fn  { color: #DCDCAA; }
-.hp-code-cmt { color: #6A9955; }
-
-.hp-editor-footer {
+.hp-act-stat {
+  flex: 1;
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border-right: 1px solid var(--border-soft);
 }
 
-/* ── 캘린더 ── */
-.hp-cal-head {
+.hp-act-stat:last-child {
+  border-right: none;
+}
+
+.hp-act-stat-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.hp-act-stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+/* contribution graph */
+.hp-contrib-wrap {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  overflow-x: auto;
+}
+
+.hp-contrib-days {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 2px;
+  flex-shrink: 0;
+}
+
+.hp-contrib-days span {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  height: 18px;
+  line-height: 18px;
+  text-align: right;
+  width: 16px;
+}
+
+.hp-contrib-graph {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+}
+
+.hp-contrib-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hp-contrib-cell {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  background: var(--border-soft);
+  cursor: default;
+  flex-shrink: 0;
+}
+
+.hp-contrib-cell--today {
+  outline: 1.5px solid var(--accent-red);
+  outline-offset: 1px;
+}
+
+.hp-contrib-cell--l1 { background: rgba(200, 16, 46, 0.20); }
+.hp-contrib-cell--l2 { background: rgba(200, 16, 46, 0.42); }
+.hp-contrib-cell--l3 { background: rgba(200, 16, 46, 0.68); }
+.hp-contrib-cell--l4 { background: var(--accent-red); }
+
+/* ── 활동 카드 본문 (contribution + 오류 차트 나란히) ── */
+.hp-act-body {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* ── 오류 유형 차트 ── */
+.hp-error-chart {
+  flex-shrink: 0;
+  width: 220px;
+  padding-left: 20px;
+  border-left: 1px solid var(--border-soft);
+}
+
+.hp-error-chart-title {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.hp-error-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-weight: 700;
-  font-size: 14px;
-  margin-bottom: 12px;
-  color: var(--text-primary);
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.7rem;
 }
 
-.hp-cal-nav {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 14px;
-  padding: 0 4px;
-  font-family: var(--font-family);
-}
-
-.hp-cal-nav:hover {
+.hp-error-label {
+  width: 80px;
+  flex-shrink: 0;
   color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.65rem;
 }
 
-.hp-cal-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px 2px;
-  text-align: center;
-  font-size: 12px;
+.hp-error-bar-wrap {
+  flex: 1;
+  height: 7px;
+  background: var(--border-soft);
+  border-radius: 4px;
+  overflow: hidden;
 }
 
-.hp-cal-dow {
+.hp-error-bar {
+  height: 100%;
+  background: var(--accent-red);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  min-width: 2px;
+}
+
+.hp-error-pct {
+  width: 28px;
+  text-align: right;
   color: var(--text-muted);
-  font-weight: 600;
-  padding-bottom: 4px;
-}
-
-.hp-cal-dow--sun { color: #C8102E; }
-.hp-cal-dow--sat { color: #1A56C7; }
-
-.hp-cal-day {
-  padding: 5px 0;
-  color: var(--text-secondary);
-  border-radius: 50%;
-  cursor: default;
-}
-
-.hp-cal-day--muted  { color: #C9C9CD; }
-
-.hp-cal-day--today {
-  border: 1.5px solid var(--accent-red);
-  color: var(--accent-red);
-  font-weight: 700;
-}
-
-.hp-cal-day--has {
-  background: var(--accent-red-soft);
-  color: var(--accent-red);
-  font-weight: 700;
-}
-
-/* ── 알림 ── */
-.hp-notice-msg {
-  color: var(--text-muted);
-  font-size: 13px;
-  line-height: 1.7;
-  margin: 0;
+  font-size: 0.65rem;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
 }
 
 /* ── 반응형 ── */
 @media (max-width: 1280px) {
   .hp-grid {
     padding: 20px 32px 48px;
-    grid-template-columns: 1fr 1fr 200px;
-  }
-}
-
-@media (max-width: 1024px) {
-  .hp-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .hp-grid > :nth-child(3),
-  .hp-grid > :nth-child(6) {
-    grid-column: 1 / -1;
   }
 }
 
@@ -302,5 +321,8 @@
   .hp-grid {
     padding: 16px;
     grid-template-columns: 1fr;
+  }
+  .hp-grid > :nth-child(3) {
+    grid-column: 1;
   }
 }
