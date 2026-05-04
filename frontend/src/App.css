@@ -17,7 +17,7 @@
 }
 
 html {
-  font-size: 156%;
+  font-size: 100%;
 }
 
 body {
@@ -77,18 +77,32 @@ body {
 
 .main-container {
   display: flex;
-  justify-content: space-around;
   padding: 20px;
   gap: 20px;
+  align-items: flex-start;
 }
 
-.code-editor, .hint-display {
+.code-editor {
+  flex: 1;
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 20px;
-  width: 45%;
   box-shadow: 0 2px 4px var(--shadow);
+  min-width: 0;
+}
+
+.hint-display {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px var(--shadow);
+}
+
+.editor-hint-wrapper {
+  flex: 1;
+  min-width: 0;
 }
 
 .example-row {
