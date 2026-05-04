@@ -1,0 +1,153 @@
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import PillButton from '../components/ui/PillButton';
+import ProblemInput from '../components/ProblemInput';
+import CodeEditor from '../components/CodeEditor';
+import HintPanel, { type Hint } from '../components/HintPanel';
+import { postHint } from '../api/hint';
+import type { HintApiResponse } from '../api/hint';
+
+type Source = 'direct' | 'baekjoon' | 'oj';
+
+interface EditorPageProps {
+  isDark: boolean;
+  onLogout: () => void;
+}
+
+export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
+  const { source: sourceParam } = useParams<{ source: string }>();
+  const source: Source =
+    sourceParam === 'baekjoon' ? 'baekjoon'
+    : sourceParam === 'oj' ? 'oj'
+    : 'direct';
+
+  const [problemNumber, setProblemNumber] = useState('');
+  const [problem, setProblem] = useState('');
+  const [expectedInput, setExpectedInput] = useState('');
+  const [expectedOutput, setExpectedOutput] = useState('');
+  const [code, setCode] = useState('');
+  const [hints, setHints] = useState<Hint[]>([]);
+  const [hintLevel, setHintLevel] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [submissionId, setSubmissionId] = useState<number | null>(null);
+
+  // source 변경 시 문제 입력 초기화
+  useEffect(() => {
+    setProblem('');
+    setExpectedInput('');
+    setExpectedOutput('');
+    setProblemNumber('');
+  }, [source]);
+
+  useEffect(() => {
+    setSubmissionId(null);
+  }, [problem, problemNumber, code, source]);
+
+  const requestHint = async () => {
+    if (!code.trim()) return;
+    setLoading(true);
+    try {
+      const data: HintApiResponse = await postHint({
+        submission_id: submissionId,
+        ...(source === 'baekjoon'
+          ? { problem_number: parseInt(problemNumber) || 0 }
+          : { problem, expected_input: expectedInput, expected_output: expectedOutput }),
+        code,
+        error_log: '',
+        hint_level: hintLevel,
+      });
+      setSubmissionId(data.submission_id);
+      setHints((prev) => [
+        ...prev,
+        {
+          level: data.hint_level,
+          explanation: data.explanation ?? '',
+          pseudocode: data.pseudocode ?? '',
+        },
+      ]);
+      if (hintLevel < 4) setHintLevel(hintLevel + 1);
+    } catch (err) {
+      if (err instanceof Error && err.message === 'Unauthorized') {
+        onLogout();
+        return;
+      }
+      setHints((prev) => [
+        ...prev,
+        {
+          level: hintLevel,
+          explanation: '서버에 연결할 수 없습니다. 백엔드가 실행 중인지 확인하세요.',
+          pseudocode: '',
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetAll = () => {
+    setProblem('');
+    setExpectedInput('');
+    setExpectedOutput('');
+    setProblemNumber('');
+    setCode('');
+    setHints([]);
+    setHintLevel(1);
+    setSubmissionId(null);
+  };
+
+  const getButtonLabel = () => {
+    if (loading) return '요청 중...';
+    if (hintLevel > 3) return '힌트 완료';
+    return `힌트 요청 (${hintLevel}단계)`;
+  };
+
+  return (
+    <>
+      <main className="main-container">
+        <div className="code-editor">
+          <ProblemInput
+            source={source}
+            problem={problem}
+            expectedInput={expectedInput}
+            expectedOutput={expectedOutput}
+            problemNumber={problemNumber}
+            locked={hints.length > 0}
+            onProblemChange={setProblem}
+            onExpectedInputChange={setExpectedInput}
+            onExpectedOutputChange={setExpectedOutput}
+            onProblemNumberChange={setProblemNumber}
+          />
+          <CodeEditor
+            code={code}
+            isDark={isDark}
+            locked={hints.length > 0}
+            onCodeChange={setCode}
+          />
+        </div>
+        <div className="editor-hint-wrapper">
+          <HintPanel hints={hints} />
+        </div>
+      </main>
+      <footer className="App-footer">
+        <div className="App-footer__actions">
+          <PillButton
+            variant="primary"
+            style={{ background: 'var(--accent-red)', fontSize: '13px', padding: '8px 20px' }}
+            onClick={requestHint}
+            disabled={loading || hintLevel > 3}
+          >
+            {getButtonLabel()} →
+          </PillButton>
+          <PillButton
+            variant="outline"
+            style={{ fontSize: '13px', padding: '8px 18px' }}
+            onClick={resetAll}
+            disabled={loading}
+          >
+            Reset
+          </PillButton>
+        </div>
+      </footer>
+    </>
+  );
+}
