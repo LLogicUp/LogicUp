@@ -7,6 +7,7 @@ interface ProblemInputProps {
   expectedInput: string;
   expectedOutput: string;
   problemNumber: string;
+  locked?: boolean;
   onProblemChange: (value: string) => void;
   onExpectedInputChange: (value: string) => void;
   onExpectedOutputChange: (value: string) => void;
@@ -19,6 +20,7 @@ function ProblemInput({
   expectedInput,
   expectedOutput,
   problemNumber,
+  locked = false,
   onProblemChange,
   onExpectedInputChange,
   onExpectedOutputChange,
@@ -34,6 +36,7 @@ function ProblemInput({
             onChange={(e) => onProblemChange(e.target.value)}
             placeholder="문제를 입력하세요 (선택)"
             rows={4}
+            disabled={locked}
           />
         </div>
         <div className="example-row">
@@ -44,6 +47,7 @@ function ProblemInput({
               onChange={(e) => onExpectedInputChange(e.target.value)}
               placeholder="입력 예시 (선택)"
               rows={3}
+              disabled={locked}
             />
           </div>
           <div className="input-field">
@@ -53,6 +57,7 @@ function ProblemInput({
               onChange={(e) => onExpectedOutputChange(e.target.value)}
               placeholder="출력 예시 (선택)"
               rows={3}
+              disabled={locked}
             />
           </div>
         </div>
@@ -71,6 +76,7 @@ function ProblemInput({
             value={problemNumber}
             onChange={(e) => onProblemNumberChange(e.target.value)}
             placeholder="문제 번호를 입력하세요 (예: 1000)"
+            disabled={locked}
           />
         </div>
       </Card>
