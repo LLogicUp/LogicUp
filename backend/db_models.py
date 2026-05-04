@@ -71,3 +71,37 @@ class HintCategory(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     submission: Mapped["Submission"] = relationship("Submission", back_populates="categories")
+
+
+class QuizSet(Base):
+    __tablename__ = "quiz_sets"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    title: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    questions: Mapped[list["QuizQuestion"]] = relationship(
+        "QuizQuestion", back_populates="quiz_set", cascade="all, delete-orphan"
+    )
+
+
+class QuizQuestion(Base):
+    __tablename__ = "quiz_questions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    set_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("quiz_sets.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    question_type: Mapped[str] = mapped_column(String(50), nullable=False, default="short_answer")
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    correct_answer: Mapped[str] = mapped_column(Text, nullable=False)
+    explanation: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    categories: Mapped[str] = mapped_column(Text, nullable=False, default="[]")  # JSON 배열 문자열
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    quiz_set: Mapped["QuizSet"] = relationship("QuizSet", back_populates="questions")
+
+
