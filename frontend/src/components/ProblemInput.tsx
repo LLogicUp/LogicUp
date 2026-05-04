@@ -6,11 +6,11 @@ interface ProblemInputProps {
   problem: string;
   expectedInput: string;
   expectedOutput: string;
-  problemNumber: string;
+  problemUrl: string;
   onProblemChange: (value: string) => void;
   onExpectedInputChange: (value: string) => void;
   onExpectedOutputChange: (value: string) => void;
-  onProblemNumberChange: (value: string) => void;
+  onProblemUrlChange: (value: string) => void;
 }
 
 function ProblemInput({
@@ -18,11 +18,11 @@ function ProblemInput({
   problem,
   expectedInput,
   expectedOutput,
-  problemNumber,
+  problemUrl,
   onProblemChange,
   onExpectedInputChange,
   onExpectedOutputChange,
-  onProblemNumberChange,
+  onProblemUrlChange,
 }: ProblemInputProps) {
   if (source === 'direct') {
     return (
@@ -64,13 +64,13 @@ function ProblemInput({
     return (
       <Card title="백준 문제">
         <div className="input-field">
-          <label>문제 번호</label>
+          <label>문제 URL</label>
           <input
             type="text"
             className="problem-number-input"
-            value={problemNumber}
-            onChange={(e) => onProblemNumberChange(e.target.value)}
-            placeholder="문제 번호를 입력하세요 (예: 1000)"
+            value={problemUrl}
+            onChange={(e) => onProblemUrlChange(e.target.value)}
+            placeholder="문제 URL을 입력하세요 (예: https://www.acmicpc.net/problem/1000)"
           />
         </div>
       </Card>

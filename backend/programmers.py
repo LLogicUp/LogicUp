@@ -24,7 +24,6 @@ def fetch_problem_from_url(url: str) -> dict:
 
     soup = BeautifulSoup(response.text, "lxml")
 
-    # 불필요한 태그 제거
     for tag in soup(["script", "style", "nav", "footer", "header", "aside"]):
         tag.decompose()
 
@@ -33,7 +32,6 @@ def fetch_problem_from_url(url: str) -> dict:
 
     logger.info(f"URL 파싱 완료 | url={url} | content_length={len(page_text)}")
 
-    # LLM으로 문제 정보 추출
     prompt = (
         "다음은 코딩 문제 페이지의 내용입니다. 문제 정보를 추출하세요.\n\n"
         f"{page_text}\n\n"

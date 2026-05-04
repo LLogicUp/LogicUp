@@ -4,7 +4,6 @@ from pydantic import BaseModel
 class HintRequest(BaseModel):
     submission_id: int | None = None
     problem: str = ""
-    problem_number: int = 0
     problem_url: str = ""
     code: str
     expected_output: str = ""

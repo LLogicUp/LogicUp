@@ -64,7 +64,7 @@ function App() {
 
   const [viewMode, setViewMode] = useState<ViewMode>('home');
   const [source, setSource] = useState<Source>('direct');
-  const [problemNumber, setProblemNumber] = useState('');
+  const [problemUrl, setProblemUrl] = useState('');
   const [problem, setProblem] = useState('');
   const [expectedInput, setExpectedInput] = useState('');
   const [expectedOutput, setExpectedOutput] = useState('');
@@ -103,12 +103,12 @@ function App() {
     setProblem('');
     setExpectedInput('');
     setExpectedOutput('');
-    setProblemNumber('');
+    setProblemUrl('');
   };
 
   useEffect(() => {
     setSubmissionId(null);
-  }, [problem, problemNumber, code, source]);
+  }, [problem, problemUrl, code, source]);
 
   const requestHint = async () => {
     if (!code.trim()) return;
@@ -117,7 +117,7 @@ function App() {
       const data: HintApiResponse = await postHint({
         submission_id: submissionId,
         ...(source === 'baekjoon'
-          ? { problem_number: parseInt(problemNumber) || 0 }
+          ? { problem_url: problemUrl }
           : { problem, expected_input: expectedInput, expected_output: expectedOutput }),
         code,
         error_log: '',
@@ -155,7 +155,7 @@ function App() {
     setProblem('');
     setExpectedInput('');
     setExpectedOutput('');
-    setProblemNumber('');
+    setProblemUrl('');
     setCode('');
     setHints([]);
     setHintLevel(1);
@@ -202,11 +202,11 @@ function App() {
                 problem={problem}
                 expectedInput={expectedInput}
                 expectedOutput={expectedOutput}
-                problemNumber={problemNumber}
+                problemUrl={problemUrl}
                 onProblemChange={setProblem}
                 onExpectedInputChange={setExpectedInput}
                 onExpectedOutputChange={setExpectedOutput}
-                onProblemNumberChange={setProblemNumber}
+                onProblemUrlChange={setProblemUrl}
               />
               <CodeEditor
                 code={code}
