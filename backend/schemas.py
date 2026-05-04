@@ -37,6 +37,7 @@ class ProblemSummary(BaseModel):
     external_problem_id: str
     hint_count: int
     last_hint_at: datetime
+    categories: list[str] = []
 
     model_config = {"from_attributes": True}
 
@@ -65,9 +66,19 @@ class DirectProblemSummary(BaseModel):
     problem_snippet: str  # 표시용 앞 80자
     hint_count: int
     last_hint_at: datetime
+    categories: list[str] = []
 
     model_config = {"from_attributes": True}
 
 
 class DirectProblemListResponse(BaseModel):
     items: list[DirectProblemSummary]
+
+
+class CategoryStat(BaseModel):
+    category: str
+    count: int
+
+
+class CategoryStatsResponse(BaseModel):
+    items: list[CategoryStat]

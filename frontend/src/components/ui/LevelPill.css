@@ -1,0 +1,23 @@
+.lu-level-pill {
+  border: 1px solid var(--border-strong);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 0.7rem;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.lu-level-pill--active {
+  background: var(--burgundy-primary);
+  color: var(--text-on-burgundy);
+  border-color: var(--burgundy-primary);
+  font-weight: 600;
+}
+
+.lu-level-pill:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

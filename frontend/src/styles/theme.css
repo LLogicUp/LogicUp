@@ -1,0 +1,56 @@
+/* ============================================================
+   LogicUp Design Tokens — 세종 포털 스타일
+   출처: docs/redesign-preview.html
+   규칙: 이 파일에 정의된 변수만 사용. 임의 색상 추가 금지.
+   ============================================================ */
+
+:root {
+  /* ── 브랜드 컬러 (버건디) ── */
+  --burgundy-primary: #8B1F2F;
+  --burgundy-deep:    #6B1822;
+  --burgundy-soft:    #A53344;
+
+  /* ── 배경 ── */
+  --bg-page:          #F5F5F7;
+  --bg-card:          #FFFFFF;
+
+  /* ── 보더 ── */
+  --border-soft:      #EAEAEA;
+  --border-strong:    #D9D9DD;
+
+  /* ── 텍스트 ── */
+  --text-primary:     #1A1A1A;
+  --text-secondary:   #4A4A4A;
+  --text-muted:       #6B7280;
+  --text-on-burgundy: #FFFFFF;
+
+  /* ── 강조 ── */
+  --accent-red:       #C8102E;
+  --accent-red-soft:  #FCE9EC;
+  --success:          #2E7D32;
+
+  /* ── 그림자 & 형태 ── */
+  --shadow-card:      0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --radius-card:      12px;
+  --radius-pill:      999px;
+
+  /* ── 폰트 ── */
+  --font-family:      'Pretendard', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* ── 레거시 별칭 (기존 App.css 클래스 호환) ── */
+  --bg-body:          var(--bg-page);
+  --bg-hint:          #F8F8FA;
+  --bg-header:        var(--burgundy-primary);
+  --border-color:     var(--border-soft);
+  --border-input:     var(--border-strong);
+  --border-hint:      var(--border-soft);
+  --shadow:           rgba(0, 0, 0, 0.06);
+  --accent:           var(--burgundy-primary);
+  --accent-hover:     var(--burgundy-deep);
+  --input-bg:         #FFFFFF;
+}
+
+/* ── 반응형 breakpoint (1280 / 1024 / 768 세 단계만) ── */
+/* @media (max-width: 1280px) { } */
+/* @media (max-width: 1024px) { } */
+/* @media (max-width: 768px)  { } */

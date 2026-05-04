@@ -2,7 +2,7 @@ import json
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import func
+from sqlalchemy import func, distinct
 from sqlalchemy.orm import Session
 from models import HintRequest
 from boj import fetch_boj_problem
@@ -10,7 +10,7 @@ from config import groq_client, logger
 from prompts import SYSTEM_PROMPT, build_prompt
 from database import get_db
 from db_models import Submission, Hint, HintCategory
-from schemas import HintResponse, HistoryItem, HistoryResponse, ProblemSummary, ProblemListResponse, SubmissionSummary, SubmissionListResponse, DirectProblemSummary, DirectProblemListResponse
+from schemas import HintResponse, HistoryItem, HistoryResponse, ProblemSummary, ProblemListResponse, SubmissionSummary, SubmissionListResponse, DirectProblemSummary, DirectProblemListResponse, CategoryStat, CategoryStatsResponse
 from auth import get_current_user
 
 router = APIRouter()
@@ -210,10 +210,12 @@ def get_problem_list(
     rows = (
         db.query(
             Submission.external_problem_id,
-            func.count(Hint.id).label("hint_count"),
+            func.count(distinct(Hint.id)).label("hint_count"),
             func.max(Hint.created_at).label("last_hint_at"),
+            func.array_agg(HintCategory.category).label("raw_categories"),
         )
         .join(Hint, Hint.submission_id == Submission.id)
+        .outerjoin(HintCategory, HintCategory.submission_id == Submission.id)
         .filter(
             Submission.user_id == current_user_id,
             Submission.source == "baekjoon",
@@ -229,6 +231,7 @@ def get_problem_list(
             external_problem_id=row.external_problem_id,
             hint_count=row.hint_count,
             last_hint_at=row.last_hint_at,
+            categories=list({c for c in (row.raw_categories or []) if c is not None}),
         )
         for row in rows
     ])
@@ -244,10 +247,12 @@ def get_direct_problem_list(
     rows = (
         db.query(
             Submission.problem,
-            func.count(Hint.id).label("hint_count"),
+            func.count(distinct(Hint.id)).label("hint_count"),
             func.max(Hint.created_at).label("last_hint_at"),
+            func.array_agg(HintCategory.category).label("raw_categories"),
         )
         .join(Hint, Hint.submission_id == Submission.id)
+        .outerjoin(HintCategory, HintCategory.submission_id == Submission.id)
         .filter(
             Submission.user_id == current_user_id,
             Submission.source == "direct",
@@ -263,7 +268,28 @@ def get_direct_problem_list(
             problem_snippet=row.problem[:80] if row.problem else "",
             hint_count=row.hint_count,
             last_hint_at=row.last_hint_at,
+            categories=list({c for c in (row.raw_categories or []) if c is not None}),
         )
+        for row in rows
+    ])
+
+
+@router.get("/history/categories", response_model=CategoryStatsResponse)
+def get_category_stats(
+    current_user_id: int = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    logger.info(f"카테고리 통계 조회 | user_id={current_user_id}")
+    rows = (
+        db.query(HintCategory.category, func.count().label("count"))
+        .join(Submission, Submission.id == HintCategory.submission_id)
+        .filter(Submission.user_id == current_user_id)
+        .group_by(HintCategory.category)
+        .order_by(func.count().desc())
+        .all()
+    )
+    return CategoryStatsResponse(items=[
+        CategoryStat(category=row.category, count=row.count)
         for row in rows
     ])
 

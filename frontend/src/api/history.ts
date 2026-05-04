@@ -24,6 +24,7 @@ export interface ProblemSummary {
   external_problem_id: string;
   hint_count: number;
   last_hint_at: string;
+  categories?: string[];
 }
 
 export interface ProblemListResponse {
@@ -48,6 +49,16 @@ export interface DirectProblemSummary {
   problem_snippet: string;
   hint_count: number;
   last_hint_at: string;
+  categories?: string[];
+}
+
+export interface CategoryStat {
+  category: string;
+  count: number;
+}
+
+export interface CategoryStatsResponse {
+  items: CategoryStat[];
 }
 
 export interface DirectProblemListResponse {
@@ -102,6 +113,15 @@ export async function fetchSubmissionList(source?: 'baekjoon' | 'direct' | 'oj')
   });
   if (res.status === 401) throw new UnauthorizedError();
   if (!res.ok) throw new Error('제출 목록 조회에 실패했습니다.');
+  return res.json();
+}
+
+export async function fetchCategoryStats(): Promise<CategoryStatsResponse> {
+  const res = await fetch('http://localhost:8000/history/categories', {
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+  });
+  if (res.status === 401) throw new UnauthorizedError();
+  if (!res.ok) throw new Error('카테고리 통계 조회에 실패했습니다.');
   return res.json();
 }
 

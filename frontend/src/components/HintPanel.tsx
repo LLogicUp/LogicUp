@@ -2,6 +2,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
+import Card from './ui/Card';
 
 export interface Hint {
   level: number;
@@ -15,8 +16,7 @@ interface HintPanelProps {
 
 function HintPanel({ hints }: HintPanelProps) {
   return (
-    <div className="hint-display">
-      <h2>Hint</h2>
+    <Card title="힌트">
       <div className="hint-content">
         {hints.length > 0 ? (
           hints.map((hint) => (
@@ -39,7 +39,7 @@ function HintPanel({ hints }: HintPanelProps) {
           <p className="hint-placeholder">코드를 입력하고 힌트를 요청하세요.</p>
         )}
       </div>
-    </div>
+    </Card>
   );
 }
 

@@ -1,0 +1,328 @@
+.hp-grid {
+  padding: 24px 56px 60px;
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 20px;
+  background: var(--bg-page);
+}
+
+/* 3번째 카드(캘린더)는 전체 너비 */
+.hp-grid > :nth-child(3) {
+  grid-column: 1 / -1;
+}
+
+/* ── 필터 행 ── */
+.hp-filter-row {
+  display: flex;
+  gap: 18px;
+  border-bottom: 1px solid var(--border-soft);
+  padding-bottom: 8px;
+  margin-bottom: 6px;
+  font-size: 0.75rem;
+}
+
+.hp-filter {
+  color: var(--text-muted);
+  cursor: pointer;
+  padding-bottom: 6px;
+  margin-bottom: -9px;
+  transition: color 0.15s;
+}
+
+.hp-filter:hover {
+  color: var(--text-secondary);
+}
+
+.hp-filter--on {
+  color: var(--accent-red);
+  font-weight: 700;
+  border-bottom: 2px solid var(--accent-red);
+}
+
+/* ── 힌트 이력 ── */
+.hp-hint-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.hp-hint-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 0.75rem;
+}
+
+.hp-hint-row:last-child {
+  border-bottom: none;
+}
+
+.hp-hint-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 72%;
+  color: var(--text-primary);
+}
+
+.hp-tag {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.hp-tag--boj    { background: #E8F0FE; color: #1A56C7; } /* BOJ 브랜드 컬러 — 의도적 고정값 */
+.hp-tag--direct { background: var(--bg-page); color: var(--text-secondary); }
+
+.hp-hint-date {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.hp-more {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 10px 0 0;
+  font-family: var(--font-family);
+  text-align: center;
+  width: 100%;
+}
+
+.hp-more:hover {
+  color: var(--text-secondary);
+}
+
+.hp-empty {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+  padding: 24px 0;
+  margin: 0;
+}
+
+/* ── 바로가기 ── */
+.hp-shortcut-card {
+  padding: 22px 18px !important;
+}
+
+.hp-shortcut-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 12px;
+}
+
+.hp-shortcut {
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-family: var(--font-family);
+  padding: 0;
+}
+
+.hp-shortcut-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--accent-red-soft);
+  border: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: background 0.15s;
+}
+
+.hp-shortcut:hover .hp-shortcut-icon {
+  background: var(--accent-red-soft);
+}
+
+/* ── 학습 활동 카드 ── */
+.hp-act-stats {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.hp-act-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border-right: 1px solid var(--border-soft);
+}
+
+.hp-act-stat:last-child {
+  border-right: none;
+}
+
+.hp-act-stat-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.hp-act-stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+/* contribution graph */
+.hp-contrib-wrap {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  overflow-x: auto;
+}
+
+.hp-contrib-days {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 2px;
+  flex-shrink: 0;
+}
+
+.hp-contrib-days span {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  height: 18px;
+  line-height: 18px;
+  text-align: right;
+  width: 16px;
+}
+
+.hp-contrib-graph {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+}
+
+.hp-contrib-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hp-contrib-cell {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  background: var(--border-soft);
+  cursor: default;
+  flex-shrink: 0;
+}
+
+.hp-contrib-cell--today {
+  outline: 1.5px solid var(--accent-red);
+  outline-offset: 1px;
+}
+
+.hp-contrib-cell--l1 { background: rgba(200, 16, 46, 0.20); }
+.hp-contrib-cell--l2 { background: rgba(200, 16, 46, 0.42); }
+.hp-contrib-cell--l3 { background: rgba(200, 16, 46, 0.68); }
+.hp-contrib-cell--l4 { background: var(--accent-red); }
+
+/* ── 활동 카드 본문 (contribution + 오류 차트 나란히) ── */
+.hp-act-body {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* ── 오류 유형 차트 ── */
+.hp-error-chart {
+  flex-shrink: 0;
+  width: 220px;
+  padding-left: 20px;
+  border-left: 1px solid var(--border-soft);
+}
+
+.hp-error-chart-title {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.hp-error-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.7rem;
+}
+
+.hp-error-label {
+  width: 80px;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.65rem;
+}
+
+.hp-error-bar-wrap {
+  flex: 1;
+  height: 7px;
+  background: var(--border-soft);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.hp-error-bar {
+  height: 100%;
+  background: var(--accent-red);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  min-width: 2px;
+}
+
+.hp-error-pct {
+  width: 28px;
+  text-align: right;
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+/* ── 반응형 ── */
+@media (max-width: 1280px) {
+  .hp-grid {
+    padding: 20px 32px 48px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hp-grid {
+    padding: 16px;
+    grid-template-columns: 1fr;
+  }
+  .hp-grid > :nth-child(3) {
+    grid-column: 1;
+  }
+}

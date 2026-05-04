@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import Header, { type Source, type ViewMode } from './components/Header';
+import UserBar from './components/UserBar';
+import LevelPill from './components/ui/LevelPill';
+import PillButton from './components/ui/PillButton';
 import ProblemInput from './components/ProblemInput';
 import CodeEditor from './components/CodeEditor';
 import HintPanel, { type Hint } from './components/HintPanel';
@@ -8,6 +11,7 @@ import QuizPage from './components/quiz/QuizPage';
 import AuthPanel from './components/AuthPanel';
 import { getToken, clearToken, kakaoLogin } from './api/auth';
 import { postHint } from './api/hint';
+import HomePage from './pages/HomePage';
 import type { HintApiResponse } from './api/hint';
 import './App.css';
 
@@ -58,7 +62,7 @@ function App() {
     }
   }, []);
 
-  const [viewMode, setViewMode] = useState<ViewMode>('editor');
+  const [viewMode, setViewMode] = useState<ViewMode>('home');
   const [source, setSource] = useState<Source>('direct');
   const [problemNumber, setProblemNumber] = useState('');
   const [problem, setProblem] = useState('');
@@ -80,7 +84,7 @@ function App() {
     clearToken();
     setToken(null);
     setUserid('');
-    setViewMode('editor');
+    setViewMode('home');
   };
 
   const handleViewModeChange = (mode: ViewMode) => {
@@ -91,7 +95,7 @@ function App() {
     clearToken();
     setToken(null);
     setUserid('');
-    setViewMode('editor');
+    setViewMode('home');
   };
 
   const handleSourceChange = (newSource: Source) => {
@@ -130,7 +134,7 @@ function App() {
       ]);
       if (hintLevel < 4) setHintLevel(hintLevel + 1);
     } catch (err) {
-      if ((err as Error).message === 'Unauthorized') {
+      if (err instanceof Error && err.message === 'Unauthorized') {
         handleLogout();
         return;
       }
@@ -178,7 +182,14 @@ function App() {
         userid={userid}
         onLogout={handleLogout}
       />
-      {viewMode === 'history' ? (
+      <UserBar userid={userid} onUnauthorized={handleLogout} />
+      {viewMode === 'home' ? (
+        <HomePage
+          onGoTo={handleViewModeChange}
+          onGoToEditor={(src) => { handleSourceChange(src); handleViewModeChange('editor'); }}
+          onUnauthorized={handleLogout}
+        />
+      ) : viewMode === 'history' ? (
         <HistoryPage onLogout={handleLogout} onGoToQuiz={() => setViewMode('quiz')} />
       ) : viewMode === 'quiz' ? (
         <QuizPage onUnauthorized={handleQuizUnauthorized} />
@@ -206,19 +217,35 @@ function App() {
             <HintPanel hints={hints} />
           </main>
           <footer className="App-footer">
-            <button
-              onClick={requestHint}
-              disabled={loading || hintLevel > 3}
-            >
-              {getButtonLabel()}
-            </button>
-            <button
-              className="reset-button"
-              onClick={resetAll}
-              disabled={loading}
-            >
-              Reset
-            </button>
+            <div className="App-footer__levels">
+              {([1, 2, 3] as const).map((lv) => (
+                <LevelPill
+                  key={lv}
+                  level={lv}
+                  active={hintLevel === lv}
+                  disabled={loading}
+                  onClick={() => setHintLevel(lv)}
+                />
+              ))}
+            </div>
+            <div className="App-footer__actions">
+              <PillButton
+                variant="primary"
+                style={{ background: 'var(--accent-red)', fontSize: '13px', padding: '8px 20px' }}
+                onClick={requestHint}
+                disabled={loading || hintLevel > 3}
+              >
+                {getButtonLabel()} →
+              </PillButton>
+              <PillButton
+                variant="outline"
+                style={{ fontSize: '13px', padding: '8px 18px' }}
+                onClick={resetAll}
+                disabled={loading}
+              >
+                Reset
+              </PillButton>
+            </div>
           </footer>
         </>
       )}

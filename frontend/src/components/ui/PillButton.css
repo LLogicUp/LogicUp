@@ -1,0 +1,47 @@
+.lu-pill {
+  border-radius: var(--radius-pill);
+  font-family: var(--font-family);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 22px;
+  transition: background 0.15s, color 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lu-pill--primary {
+  background: var(--burgundy-primary);
+  color: var(--text-on-burgundy);
+  border: none;
+}
+
+.lu-pill--primary:hover:not(:disabled) {
+  background: var(--burgundy-deep);
+}
+
+.lu-pill--outline {
+  background: var(--bg-card);
+  color: var(--burgundy-primary);
+  border: 1px solid var(--burgundy-primary);
+}
+
+.lu-pill--outline:hover:not(:disabled) {
+  background: var(--accent-red-soft);
+}
+
+.lu-pill--ghost {
+  background: transparent;
+  color: var(--text-on-burgundy);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.lu-pill--ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.lu-pill:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
