@@ -60,7 +60,7 @@ interface HomePageProps {
 /* ── 최근 힌트 이력 카드 ── */
 function RecentHintsCard({ onGoTo, onUnauthorized }: { onGoTo: (m: ViewMode) => void; onUnauthorized: () => void }) {
   const [items, setItems] = useState<HistoryItem[]>([]);
-  const [filter, setFilter] = useState<'all' | 'baekjoon' | 'direct'>('all');
+  const [filter, setFilter] = useState<'all' | 'url' | 'direct'>('all');
 
   useEffect(() => {
     const controller = new AbortController();
@@ -70,9 +70,9 @@ function RecentHintsCard({ onGoTo, onUnauthorized }: { onGoTo: (m: ViewMode) => 
     return () => controller.abort();
   }, [filter, onUnauthorized]);
 
-  const FILTERS: { key: 'all' | 'baekjoon' | 'direct'; label: string }[] = [
+  const FILTERS: { key: 'all' | 'url' | 'direct'; label: string }[] = [
     { key: 'all', label: '전체' },
-    { key: 'baekjoon', label: '백준' },
+    { key: 'url', label: '문제 불러오기' },
     { key: 'direct', label: '직접 입력' },
   ];
 
@@ -96,8 +96,8 @@ function RecentHintsCard({ onGoTo, onUnauthorized }: { onGoTo: (m: ViewMode) => 
         {items.map((item) => (
           <div key={item.hint_id} className="hp-hint-row">
             <div className="hp-hint-title">
-              <span className={`hp-tag hp-tag--${item.source === 'baekjoon' ? 'boj' : 'direct'}`}>
-                {item.source === 'baekjoon' ? `백준 ${item.external_problem_id}` : '직접'}
+              <span className={`hp-tag hp-tag--${item.source === 'url' ? 'boj' : 'direct'}`}>
+                {item.source === 'url' ? '불러옴' : '직접'}
               </span>
               {item.problem.slice(0, 30) || '(제목 없음)'}
             </div>
@@ -113,7 +113,7 @@ function RecentHintsCard({ onGoTo, onUnauthorized }: { onGoTo: (m: ViewMode) => 
 /* ── 바로가기 카드 ── */
 const SHORTCUTS: { icon: string; label: string; mode: ViewMode | null; source?: Source }[] = [
   { icon: '📝', label: '직접 입력', mode: 'editor', source: 'direct' },
-  { icon: '🏅', label: '백준',     mode: 'editor', source: 'baekjoon' },
+  { icon: '🔗', label: '문제 불러오기', mode: 'editor', source: 'url' },
   { icon: '📜', label: '히스토리', mode: 'history' },
   { icon: '🎯', label: '퀴즈',     mode: 'quiz' },
 ];

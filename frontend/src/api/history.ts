@@ -68,7 +68,7 @@ export interface DirectProblemListResponse {
 export interface FetchHistoryParams {
   page?: number;
   limit?: number;
-  source?: 'baekjoon' | 'direct' | 'oj';
+  source?: 'url' | 'direct' | 'oj';
   problem_id?: string;
   submission_id?: number;
   problem_text?: string;
@@ -105,7 +105,7 @@ export async function fetchDirectProblemList(): Promise<DirectProblemListRespons
   return res.json();
 }
 
-export async function fetchSubmissionList(source?: 'baekjoon' | 'direct' | 'oj'): Promise<SubmissionListResponse> {
+export async function fetchSubmissionList(source?: 'url' | 'direct' | 'oj'): Promise<SubmissionListResponse> {
   const qs = new URLSearchParams();
   if (source !== undefined) qs.set('source', source);
   const res = await fetch(`http://localhost:8000/history/submissions?${qs}`, {

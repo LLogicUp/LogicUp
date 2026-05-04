@@ -7,7 +7,7 @@ import HintPanel, { type Hint } from '../components/HintPanel';
 import { postHint } from '../api/hint';
 import type { HintApiResponse } from '../api/hint';
 
-type Source = 'direct' | 'baekjoon' | 'oj';
+type Source = 'direct' | 'url' | 'oj';
 
 interface EditorPageProps {
   isDark: boolean;
@@ -17,11 +17,11 @@ interface EditorPageProps {
 export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
   const { source: sourceParam } = useParams<{ source: string }>();
   const source: Source =
-    sourceParam === 'baekjoon' ? 'baekjoon'
+    sourceParam === 'url' ? 'url'
     : sourceParam === 'oj' ? 'oj'
     : 'direct';
 
-  const [problemNumber, setProblemNumber] = useState('');
+  const [problemUrl, setProblemUrl] = useState('');
   const [problem, setProblem] = useState('');
   const [expectedInput, setExpectedInput] = useState('');
   const [expectedOutput, setExpectedOutput] = useState('');
@@ -36,12 +36,12 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
     setProblem('');
     setExpectedInput('');
     setExpectedOutput('');
-    setProblemNumber('');
+    setProblemUrl('');
   }, [source]);
 
   useEffect(() => {
     setSubmissionId(null);
-  }, [problem, problemNumber, code, source]);
+  }, [problem, problemUrl, code, source]);
 
   const requestHint = async () => {
     if (!code.trim()) return;
@@ -49,8 +49,8 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
     try {
       const data: HintApiResponse = await postHint({
         submission_id: submissionId,
-        ...(source === 'baekjoon'
-          ? { problem_number: parseInt(problemNumber) || 0 }
+        ...(source === 'url'
+          ? { problem_url: problemUrl }
           : { problem, expected_input: expectedInput, expected_output: expectedOutput }),
         code,
         error_log: '',
@@ -88,7 +88,7 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
     setProblem('');
     setExpectedInput('');
     setExpectedOutput('');
-    setProblemNumber('');
+    setProblemUrl('');
     setCode('');
     setHints([]);
     setHintLevel(1);
@@ -110,12 +110,12 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
             problem={problem}
             expectedInput={expectedInput}
             expectedOutput={expectedOutput}
-            problemNumber={problemNumber}
+            problemUrl={problemUrl}
             locked={hints.length > 0}
             onProblemChange={setProblem}
             onExpectedInputChange={setExpectedInput}
             onExpectedOutputChange={setExpectedOutput}
-            onProblemNumberChange={setProblemNumber}
+            onProblemUrlChange={setProblemUrl}
           />
           <CodeEditor
             code={code}

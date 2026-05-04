@@ -12,7 +12,7 @@ import {
   type DirectProblemSummary,
 } from '../api/history';
 
-type HistoryTab = 'all' | 'baekjoon' | 'direct';
+type HistoryTab = 'all' | 'url' | 'direct';
 
 type DrillDown =
   | { kind: 'problem'; problemId: string; label: string }
@@ -31,7 +31,7 @@ const HINT_LEVEL_LABEL: Record<number, string> = {
 
 const TAB_LABELS: Record<HistoryTab, string> = {
   all: '전체',
-  baekjoon: '백준',
+  url: '문제 불러오기',
   direct: '직접 입력',
 };
 
@@ -46,7 +46,7 @@ function formatDate(iso: string): string {
 }
 
 function cardLabel(card: GroupedCard): string {
-  if (card.kind === 'problem') return `백준 ${card.data.external_problem_id}번`;
+  if (card.kind === 'problem') return card.data.external_problem_id ?? '불러온 문제';
   return card.data.problem_snippet || '직접 입력';
 }
 
@@ -106,7 +106,7 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
           );
           setAllList(combined);
         });
-    } else if (activeTab === 'baekjoon') {
+    } else if (activeTab === 'url') {
       load = fetchProblemList().then((d) => setProblemList(d.items));
     } else {
       load = fetchDirectProblemList().then((d) => setDirectList(d.items));
@@ -126,7 +126,7 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
 
     const params =
       drillDown.kind === 'problem'
-        ? { page, limit, source: 'baekjoon' as const, problem_id: drillDown.problemId }
+        ? { page, limit, source: 'url' as const, problem_id: drillDown.problemId }
         : { page, limit, source: 'direct' as const, problem_text: drillDown.problemText };
 
     fetchHistory(params)
@@ -149,7 +149,7 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
       setDrillDown({
         kind: 'problem',
         problemId: card.data.external_problem_id,
-        label: `백준 ${card.data.external_problem_id}번`,
+        label: card.data.external_problem_id ?? '불러온 문제',
       });
     } else {
       setDrillDown({
@@ -262,10 +262,10 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
     if (activeTab === 'all') {
       return renderCardList(allList, '저장된 힌트 이력이 없습니다.');
     }
-    if (activeTab === 'baekjoon') {
+    if (activeTab === 'url') {
       return renderCardList(
         problemList.map((p): GroupedCard => ({ kind: 'problem', data: p })),
-        '백준 문제 기록이 없습니다.',
+        '불러온 문제 기록이 없습니다.',
       );
     }
     return renderCardList(

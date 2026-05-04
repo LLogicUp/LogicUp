@@ -146,7 +146,7 @@ body {
   border-color: var(--accent);
 }
 
-.problem-number-input {
+.problem-url-input {
   width: 100%;
   padding: 10px;
   border: 1px solid var(--border-input);
@@ -599,7 +599,7 @@ body {
   font-weight: 600;
 }
 
-/* ─── 백준 문제 목록 ─── */
+/* ─── 문제 불러오기 목록 ─── */
 .problem-list {
   display: flex;
   flex-direction: column;

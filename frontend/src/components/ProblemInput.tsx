@@ -7,6 +7,7 @@ interface ProblemInputProps {
   expectedInput: string;
   expectedOutput: string;
   problemUrl: string;
+  locked?: boolean;
   onProblemChange: (value: string) => void;
   onExpectedInputChange: (value: string) => void;
   onExpectedOutputChange: (value: string) => void;
@@ -18,7 +19,7 @@ function ProblemInput({
   problem,
   expectedInput,
   expectedOutput,
-  problemNumber,
+  problemUrl,
   locked = false,
   onProblemChange,
   onExpectedInputChange,
@@ -64,14 +65,14 @@ function ProblemInput({
     );
   }
 
-  if (source === 'baekjoon') {
+  if (source === 'url') {
     return (
-      <Card title="백준 문제">
+      <Card title="문제 불러오기">
         <div className="input-field">
           <label>문제 URL</label>
           <input
             type="text"
-            className="problem-number-input"
+            className="problem-url-input"
             value={problemUrl}
             onChange={(e) => onProblemUrlChange(e.target.value)}
             placeholder="문제 URL을 입력하세요 (예: https://www.acmicpc.net/problem/1000)"

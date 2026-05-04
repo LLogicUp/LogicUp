@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Header.css';
 
-export type Source = 'direct' | 'baekjoon' | 'oj';
+export type Source = 'direct' | 'url' | 'oj';
 export type ViewMode = 'home' | 'editor' | 'history' | 'quiz';
 
 interface HeaderProps {
@@ -17,7 +17,7 @@ type Tab = {
 const TABS: Tab[] = [
   { label: '홈',       path: '/' },
   { label: '직접 입력', path: '/editor/direct' },
-  { label: '백준',     path: '/editor/baekjoon' },
+  { label: '문제 불러오기', path: '/editor/url' },
   { label: 'OJ',       path: '/editor/oj' },
   { label: '히스토리', path: '/history' },
   { label: '퀴즈',     path: '/quiz' },
