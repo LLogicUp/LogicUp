@@ -52,7 +52,7 @@ function Header({ source, onSourceChange, viewMode, onViewModeChange, userid, on
 
         <div className="lu-header__utils">
           <span className="lu-header__greet"><b>{userid}</b>님 안녕하세요.</span>
-          <button className="lu-header__util-btn" onClick={onLogout}>🔓 로그아웃</button>
+          <button className="lu-header__util-btn" onClick={onLogout}>로그아웃</button>
         </div>
       </div>
 
