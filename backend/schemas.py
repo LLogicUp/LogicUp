@@ -16,6 +16,7 @@ class HistoryItem(BaseModel):
     submission_id: int
     source: str
     external_problem_id: str | None
+    title: str = ""
     problem: str
     hint_level: int
     explanation: str
@@ -51,6 +52,7 @@ class SubmissionSummary(BaseModel):
     submission_id: int
     source: str
     external_problem_id: str | None
+    title: str = ""
     problem_snippet: str
     hint_count: int
     last_hint_at: datetime
