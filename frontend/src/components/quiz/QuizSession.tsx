@@ -54,12 +54,32 @@ function QuizSession({ setTitle, questions, isSubmitting, onSubmit, onBack }: Qu
       <div className="quiz-question-card">
         <div className="quiz-question-number">Q{currentIndex + 1}</div>
         <div className="quiz-question-content">{current.content}</div>
-        <AnswerInput
-          value={currentAnswer}
-          onChange={setAnswer}
-          onSubmit={isLast ? handleSubmit : goNext}
-          disabled={isSubmitting}
-        />
+        {current.question_type === 'multiple_choice' && current.choices?.length ? (
+          <div className="quiz-choice-list">
+            {current.choices.map((choice, index) => {
+              const selected = currentAnswer === choice;
+              return (
+                <button
+                  key={`${current.id}-${choice}`}
+                  type="button"
+                  className={`quiz-choice-option${selected ? ' selected' : ''}`}
+                  onClick={() => setAnswer(choice)}
+                  disabled={isSubmitting}
+                >
+                  <span className="quiz-choice-index">{index + 1}</span>
+                  <span className="quiz-choice-text">{choice}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <AnswerInput
+            value={currentAnswer}
+            onChange={setAnswer}
+            onSubmit={isLast ? handleSubmit : goNext}
+            disabled={isSubmitting}
+          />
+        )}
       </div>
 
       <div className="quiz-session-nav">

@@ -13,6 +13,7 @@ import {
 } from '../api/history';
 
 type HistoryTab = 'all' | 'url' | 'direct';
+type LanguageFilter = 'all' | 'c' | 'cpp' | 'python' | 'java';
 
 type DrillDown =
   | { kind: 'problem'; problemId: string; label: string }
@@ -35,6 +36,21 @@ const TAB_LABELS: Record<HistoryTab, string> = {
   direct: '직접 입력',
 };
 
+const LANGUAGE_LABELS: Record<string, string> = {
+  c: 'C',
+  cpp: 'C++',
+  python: 'Python',
+  java: 'Java',
+};
+
+const LANGUAGE_FILTERS: { key: LanguageFilter; label: string }[] = [
+  { key: 'all', label: '전체' },
+  { key: 'c', label: 'C' },
+  { key: 'cpp', label: 'C++' },
+  { key: 'python', label: 'Python' },
+  { key: 'java', label: 'Java' },
+];
+
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleString('ko-KR', {
     year: 'numeric',
@@ -46,6 +62,8 @@ function formatDate(iso: string): string {
 }
 
 function cardLabel(card: GroupedCard): string {
+  const title = card.data.title?.trim();
+  if (title) return title;
   if (card.kind === 'problem') return card.data.external_problem_id ?? '불러온 문제';
   return card.data.problem_snippet || '직접 입력';
 }
@@ -54,13 +72,22 @@ function cardDate(card: GroupedCard): string {
   return card.data.last_hint_at;
 }
 
+function languageLabel(language?: string): string {
+  return LANGUAGE_LABELS[language || 'c'] ?? language ?? 'C';
+}
+
+function cardLanguage(card: GroupedCard): string {
+  return card.data.language || 'c';
+}
+
 interface HistoryPageProps {
   onLogout: () => void;
-  onGoToQuiz?: () => void;
+  onGoToQuiz?: (categories: string[]) => void;
 }
 
 function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
   const [activeTab, setActiveTab] = useState<HistoryTab>('all');
+  const [activeLanguage, setActiveLanguage] = useState<LanguageFilter>('all');
   const [drillDown, setDrillDown] = useState<DrillDown | null>(null);
 
   const [items, setItems] = useState<HistoryItem[]>([]);
@@ -149,29 +176,44 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
       setDrillDown({
         kind: 'problem',
         problemId: card.data.external_problem_id,
-        label: card.data.external_problem_id ?? '불러온 문제',
+        label: cardLabel(card),
       });
     } else {
       setDrillDown({
         kind: 'direct',
         problemText: card.data.problem,
-        label: card.data.problem_snippet || '직접 입력',
+        label: cardLabel(card),
       });
     }
   };
 
   const renderTabs = () => (
-    <div className="history-tabs">
-      {(Object.keys(TAB_LABELS) as HistoryTab[]).map((tab) => (
-        <button
-          key={tab}
-          className={`history-tab${activeTab === tab ? ' active' : ''}`}
-          onClick={() => setActiveTab(tab)}
-        >
-          {TAB_LABELS[tab]}
-        </button>
-      ))}
-    </div>
+    <>
+      <div className="history-tabs">
+        {(Object.keys(TAB_LABELS) as HistoryTab[]).map((tab) => (
+          <button
+            key={tab}
+            className={`history-tab${activeTab === tab ? ' active' : ''}`}
+            onClick={() => setActiveTab(tab)}
+          >
+            {TAB_LABELS[tab]}
+          </button>
+        ))}
+      </div>
+      {drillDown === null && (
+        <div className="history-language-tabs">
+          {LANGUAGE_FILTERS.map((language) => (
+            <button
+              key={language.key}
+              className={`history-language-tab${activeLanguage === language.key ? ' active' : ''}`}
+              onClick={() => setActiveLanguage(language.key)}
+            >
+              {language.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </>
   );
 
   const renderCardList = (cards: GroupedCard[], emptyMsg: string) => {
@@ -190,6 +232,7 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
             >
               <div className="problem-card-top">
                 <span className="problem-number">{cardLabel(card)}</span>
+                <span className="problem-language-badge">{languageLabel(card.data.language)}</span>
                 <span className="problem-hint-count">힌트 {card.data.hint_count}회</span>
                 <span className="problem-last-date">{formatDate(cardDate(card))}</span>
               </div>
@@ -204,7 +247,9 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
             {onGoToQuiz && (
               <button
                 className="problem-quiz-btn"
-                onClick={onGoToQuiz}
+                onClick={() => onGoToQuiz(card.data.categories ?? [])}
+                disabled={(card.data.categories ?? []).length === 0}
+                title={(card.data.categories ?? []).length === 0 ? '생성할 오류 유형이 없습니다.' : undefined}
               >
                 퀴즈
               </button>
@@ -259,18 +304,27 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
   };
 
   const renderList = () => {
+    const filterByLanguage = (cards: GroupedCard[]) => (
+      activeLanguage === 'all'
+        ? cards
+        : cards.filter((card) => cardLanguage(card) === activeLanguage)
+    );
+    const emptyMsg = activeLanguage === 'all'
+      ? undefined
+      : `${LANGUAGE_LABELS[activeLanguage]} 기록이 없습니다.`;
+
     if (activeTab === 'all') {
-      return renderCardList(allList, '저장된 힌트 이력이 없습니다.');
+      return renderCardList(filterByLanguage(allList), emptyMsg ?? '저장된 힌트 이력이 없습니다.');
     }
     if (activeTab === 'url') {
       return renderCardList(
-        problemList.map((p): GroupedCard => ({ kind: 'problem', data: p })),
-        '불러온 문제 기록이 없습니다.',
+        filterByLanguage(problemList.map((p): GroupedCard => ({ kind: 'problem', data: p }))),
+        emptyMsg ?? '불러온 문제 기록이 없습니다.',
       );
     }
     return renderCardList(
-      directList.map((d): GroupedCard => ({ kind: 'direct', data: d })),
-      '직접 입력 기록이 없습니다.',
+      filterByLanguage(directList.map((d): GroupedCard => ({ kind: 'direct', data: d }))),
+      emptyMsg ?? '직접 입력 기록이 없습니다.',
     );
   };
 

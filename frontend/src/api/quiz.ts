@@ -1,6 +1,6 @@
 import { authHeaders } from './auth';
 
-export type QuestionType = 'short_answer';
+export type QuestionType = 'short_answer' | 'multiple_choice';
 
 export type QuizScreenState =
   | 'list'
@@ -28,6 +28,7 @@ export interface QuizQuestion {
   id: number;
   question_type: QuestionType;
   content: string;
+  choices: string[] | null;
   categories: string[];
 }
 

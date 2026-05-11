@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import type {
   QuizScreenState,
   QuizSetSummary,
@@ -22,7 +23,15 @@ interface QuizPageProps {
   onUnauthorized?: () => void;
 }
 
+interface QuizLocationState {
+  autoGenerate?: boolean;
+  categories?: string[];
+}
+
 function QuizPage({ onUnauthorized }: QuizPageProps) {
+  const location = useLocation();
+  const locationState = location.state as QuizLocationState | null;
+  const autoGenerateRef = useRef(false);
   const [screen, setScreen] = useState<QuizScreenState>('loading');
   const [sets, setSets] = useState<QuizSetSummary[]>([]);
   const [error, setError] = useState('');
@@ -61,8 +70,39 @@ function QuizPage({ onUnauthorized }: QuizPageProps) {
   }, []);
 
   useEffect(() => {
+    if (locationState?.autoGenerate) return;
     loadSets();
-  }, [loadSets]);
+  }, [loadSets, locationState?.autoGenerate]);
+
+  useEffect(() => {
+    if (!locationState?.autoGenerate || autoGenerateRef.current) return;
+
+    autoGenerateRef.current = true;
+    const categories = locationState.categories ?? [];
+
+    setIsGenerating(true);
+    setScreen('loading');
+    setError('');
+
+    generateQuiz(3, categories)
+      .then((data) => {
+        setActiveSetId(data.id);
+        setActiveTitle(data.title);
+        setQuestions(data.questions);
+        setResult(null);
+        setScreen('session');
+      })
+      .catch((e) => {
+        if (e instanceof Error && e.message === 'Unauthorized') {
+          handleUnauthorized();
+          return;
+        }
+        setError(e instanceof Error ? e.message : '퀴즈 생성에 실패했습니다.');
+        setScreen('error');
+      })
+      .finally(() => setIsGenerating(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locationState?.autoGenerate]);
 
   async function handleOpenGenerateModal() {
     setShowGenerateModal(true);

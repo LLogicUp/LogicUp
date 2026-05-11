@@ -99,7 +99,7 @@ function RecentHintsCard({ onGoTo, onUnauthorized }: { onGoTo: (m: ViewMode) => 
               <span className={`hp-tag hp-tag--${item.source === 'url' ? 'boj' : 'direct'}`}>
                 {item.source === 'url' ? '불러옴' : '직접'}
               </span>
-              {item.problem.slice(0, 30) || '(제목 없음)'}
+              {(item.title?.trim() || item.problem.slice(0, 30)) || '(제목 없음)'}
             </div>
             <div className="hp-hint-date">{item.created_at.slice(0, 10)}</div>
           </div>

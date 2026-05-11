@@ -5,6 +5,7 @@ export interface HistoryItem {
   submission_id: number;
   source: string;
   external_problem_id: string | null;
+  title: string;
   problem: string;
   hint_level: number;
   explanation: string;
@@ -22,6 +23,8 @@ export interface HistoryResponse {
 
 export interface ProblemSummary {
   external_problem_id: string;
+  title?: string;
+  language?: string;
   hint_count: number;
   last_hint_at: string;
   categories?: string[];
@@ -47,6 +50,8 @@ export interface SubmissionListResponse {
 export interface DirectProblemSummary {
   problem: string;
   problem_snippet: string;
+  title?: string;
+  language?: string;
   hint_count: number;
   last_hint_at: string;
   categories?: string[];
