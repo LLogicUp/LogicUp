@@ -30,6 +30,13 @@ interface QuizLocationState {
   language?: QuizLanguage;
 }
 
+const QUIZ_LANGUAGES: { value: QuizLanguage; label: string }[] = [
+  { value: 'c', label: 'C' },
+  { value: 'cpp', label: 'C++' },
+  { value: 'python', label: 'Python' },
+  { value: 'java', label: 'Java' },
+];
+
 function QuizPage({ onUnauthorized }: QuizPageProps) {
   const location = useLocation();
   const locationState = location.state as QuizLocationState | null;
@@ -47,6 +54,7 @@ function QuizPage({ onUnauthorized }: QuizPageProps) {
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [availableCategories, setAvailableCategories] = useState<CategoryStat[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedLanguage, setSelectedLanguage] = useState<QuizLanguage>('c');
   const [categoriesLoading, setCategoriesLoading] = useState(false);
 
   function handleUnauthorized() {
@@ -133,7 +141,7 @@ function QuizPage({ onUnauthorized }: QuizPageProps) {
     setIsGenerating(true);
     setError('');
     try {
-      const data = await generateQuiz(3, selectedCategories);
+      const data = await generateQuiz(3, selectedCategories, selectedLanguage);
       setActiveSetId(data.id);
       setActiveTitle(data.title);
       setQuestions(data.questions);
@@ -214,7 +222,9 @@ function QuizPage({ onUnauthorized }: QuizPageProps) {
             selected={selectedCategories}
             loading={categoriesLoading}
             isGenerating={isGenerating}
+            language={selectedLanguage}
             onToggle={handleToggleCategory}
+            onLanguageChange={setSelectedLanguage}
             onConfirm={handleGenerate}
             onClose={() => setShowGenerateModal(false)}
           />
@@ -247,7 +257,9 @@ function QuizPage({ onUnauthorized }: QuizPageProps) {
             selected={selectedCategories}
             loading={categoriesLoading}
             isGenerating={isGenerating}
+            language={selectedLanguage}
             onToggle={handleToggleCategory}
+            onLanguageChange={setSelectedLanguage}
             onConfirm={handleGenerate}
             onClose={() => setShowGenerateModal(false)}
           />
@@ -286,7 +298,9 @@ interface GenerateModalProps {
   selected: string[];
   loading: boolean;
   isGenerating: boolean;
+  language: QuizLanguage;
   onToggle: (cat: string) => void;
+  onLanguageChange: (language: QuizLanguage) => void;
   onConfirm: () => void;
   onClose: () => void;
 }
@@ -296,7 +310,9 @@ function GenerateModal({
   selected,
   loading,
   isGenerating,
+  language,
   onToggle,
+  onLanguageChange,
   onConfirm,
   onClose,
 }: GenerateModalProps) {
@@ -308,6 +324,21 @@ function GenerateModal({
           <button className="gen-modal-close" onClick={onClose}>✕</button>
         </div>
         <p className="gen-modal-desc">집중 학습할 오류 유형을 선택하세요.</p>
+        <div className="gen-modal-language">
+          <span className="gen-modal-language-label">언어</span>
+          <div className="gen-modal-language-options">
+            {QUIZ_LANGUAGES.map((item) => (
+              <button
+                key={item.value}
+                type="button"
+                className={`gen-modal-language-option${language === item.value ? ' active' : ''}`}
+                onClick={() => onLanguageChange(item.value)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
         {loading ? (
           <div className="gen-modal-loading">불러오는 중...</div>
         ) : categories.length === 0 ? (
