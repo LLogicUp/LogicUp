@@ -70,7 +70,6 @@ class HintCategory(Base):
         Integer, ForeignKey("submissions.id", ondelete="CASCADE"), nullable=False, index=True
     )
     category: Mapped[str] = mapped_column(String(100), nullable=False)
-    language: Mapped[str | None] = mapped_column(String(20), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     submission: Mapped["Submission"] = relationship("Submission", back_populates="categories")

@@ -114,7 +114,7 @@ def get_hint(
 
     if is_new_submission:
         for cat in error_categories:
-            db.add(HintCategory(submission_id=submission.id, category=cat, language=request.language))
+            db.add(HintCategory(submission_id=submission.id, category=cat))
 
     hint = Hint(
         submission_id=submission.id,

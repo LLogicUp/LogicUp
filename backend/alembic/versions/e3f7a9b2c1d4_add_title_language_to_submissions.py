@@ -20,8 +20,10 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.add_column('submissions', sa.Column('title', sa.String(length=200), nullable=False, server_default=''))
     op.add_column('submissions', sa.Column('language', sa.String(length=20), nullable=False, server_default=''))
+    op.drop_column('hint_categories', 'language')
 
 
 def downgrade() -> None:
+    op.add_column('hint_categories', sa.Column('language', sa.String(length=20), nullable=True))
     op.drop_column('submissions', 'language')
     op.drop_column('submissions', 'title')
