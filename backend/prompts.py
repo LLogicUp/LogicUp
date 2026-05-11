@@ -104,18 +104,19 @@ SYSTEM_PROMPT = (
     "6. 이전 단계로 되돌리기 금지 "
     "7. 오류가 나지 않는다면 오류가 없다고 알려주세요. "
     "8. 반드시 다음 JSON 형식으로만 응답하세요: "
-    '{"explanation": "현재 단계에 맞는 상세 설명", "pseudocode": "3단계에서만 채우고 1·2단계에서는 반드시 빈 문자열", "error_categories": ["카테고리1", "카테고리2"]} '
+    '{"explanation": "현재 단계에 맞는 상세 설명", "pseudocode": "3단계에서만 채우고 1·2단계에서는 반드시 빈 문자열", "error_categories": ["카테고리1", "카테고리2"], "title": "문제를 한 줄로 요약한 제목 (직접 입력 문제에서만 작성, URL 문제나 모를 경우 빈 문자열)"} '
     "9. 의사코드를 제외한 다른 힌트는 한글로 설명해주세요. "
     "10. error_categories는 반드시 다음 목록에서만 선택하세요 (복수 선택 가능, 해당 없으면 빈 배열): "
     f"[{_categories_str}]"
 )
 
 
-def build_prompt(problem: str, expected_input: str, expected_output: str, code: str, error_log: str, hint_level: int) -> str:
+def build_prompt(problem: str, expected_input: str, expected_output: str, code: str, error_log: str, hint_level: int, language: str = "c") -> str:
     return (
         f"[문제]\n{problem}\n\n"
         f"[정답 예시 입력]\n{expected_input}\n\n"
         f"[정답 예시 출력]\n{expected_output}\n\n"
+        f"[사용자 코드 언어]\n{language}\n\n"
         f"[사용자 코드]\n{code}\n\n"
         f"[에러 로그]\n{error_log}\n\n"
         f"[힌트 단계 {hint_level}] {LEVEL_INSTRUCTIONS[hint_level]}"

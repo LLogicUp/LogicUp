@@ -34,6 +34,8 @@ class Submission(Base):
     expected_output: Mapped[str] = mapped_column(Text, nullable=False, default="")
     code: Mapped[str] = mapped_column(Text, nullable=False)
     error_log: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    title: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    language: Mapped[str] = mapped_column(String(20), nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     user: Mapped["User"] = relationship("User", back_populates="submissions")
@@ -68,6 +70,7 @@ class HintCategory(Base):
         Integer, ForeignKey("submissions.id", ondelete="CASCADE"), nullable=False, index=True
     )
     category: Mapped[str] = mapped_column(String(100), nullable=False)
+    language: Mapped[str | None] = mapped_column(String(20), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     submission: Mapped["Submission"] = relationship("Submission", back_populates="categories")
