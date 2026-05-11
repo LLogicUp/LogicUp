@@ -1,11 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class HintRequest(BaseModel):
     submission_id: int | None = None
     problem: str = ""
     problem_url: str = ""
-    code: str
+    code: str = Field(..., max_length=100_000)
     expected_output: str = ""
     expected_input: str = ""
     error_log: str = ""
