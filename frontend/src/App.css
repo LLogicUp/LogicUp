@@ -738,9 +738,14 @@ body {
   transition: background 0.2s, color 0.2s;
 }
 
-.problem-quiz-btn:hover {
+.problem-quiz-btn:hover:not(:disabled) {
   background: var(--accent);
   color: var(--text-on-burgundy);
+}
+
+.problem-quiz-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 /* ─── 뒤로가기 버튼 ─── */
@@ -1035,6 +1040,60 @@ body {
 
 .quiz-answer-input input:disabled {
   opacity: 0.6;
+}
+
+.quiz-choice-list {
+  display: grid;
+  gap: 10px;
+}
+
+.quiz-choice-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border-input);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+
+.quiz-choice-option:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.quiz-choice-option.selected {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--text-on-burgundy);
+}
+
+.quiz-choice-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.quiz-choice-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.quiz-choice-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .quiz-session-nav {
