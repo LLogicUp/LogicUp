@@ -16,6 +16,7 @@ class HistoryItem(BaseModel):
     submission_id: int
     source: str
     external_problem_id: str | None
+    title: str = ""
     problem: str
     hint_level: int
     explanation: str
@@ -36,6 +37,7 @@ class HistoryResponse(BaseModel):
 class ProblemSummary(BaseModel):
     external_problem_id: str
     title: str = ""
+    language: str = "c"
     hint_count: int
     last_hint_at: datetime
     categories: list[str] = []
@@ -51,6 +53,7 @@ class SubmissionSummary(BaseModel):
     submission_id: int
     source: str
     external_problem_id: str | None
+    title: str = ""
     problem_snippet: str
     hint_count: int
     last_hint_at: datetime
@@ -66,6 +69,7 @@ class DirectProblemSummary(BaseModel):
     problem: str          # 필터 키로 사용하는 전체 텍스트
     problem_snippet: str  # 표시용 앞 80자
     title: str = ""
+    language: str = "c"
     hint_count: int
     last_hint_at: datetime
     categories: list[str] = []
