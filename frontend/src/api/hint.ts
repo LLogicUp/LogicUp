@@ -5,6 +5,7 @@ export interface HintRequest {
   problem?: string;
   problem_url?: string;
   code: string;
+  language: 'c' | 'cpp' | 'python' | 'java';
   expected_input?: string;
   expected_output?: string;
   error_log: string;
