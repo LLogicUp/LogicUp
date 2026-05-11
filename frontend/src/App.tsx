@@ -107,8 +107,8 @@ function App() {
           element={
             <HistoryPage
               onLogout={handleLogout}
-              onGoToQuiz={(categories) =>
-                navigate('/quiz', { state: { autoGenerate: true, categories } })
+              onGoToQuiz={(categories, language) =>
+                navigate('/quiz', { state: { autoGenerate: true, categories, language } })
               }
             />
           }

@@ -1,6 +1,7 @@
 import { authHeaders } from './auth';
 
 export type QuestionType = 'short_answer' | 'multiple_choice';
+export type QuizLanguage = 'c' | 'cpp' | 'python' | 'java';
 
 export type QuizScreenState =
   | 'list'
@@ -99,10 +100,11 @@ export async function submitQuiz(
 
 export async function generateQuiz(
   count = 3,
-  categories: string[] = []
+  categories: string[] = [],
+  language: QuizLanguage = 'c'
 ): Promise<{ id: number; title: string; questions: QuizQuestion[] }> {
   return apiFetch('/quiz/generate', {
     method: 'POST',
-    body: JSON.stringify({ count, categories }),
+    body: JSON.stringify({ count, categories, language }),
   });
 }

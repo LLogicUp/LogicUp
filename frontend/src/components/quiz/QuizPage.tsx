@@ -7,6 +7,7 @@ import type {
   QuizAnswerDraft,
   QuizSubmitResult,
   CategoryStat,
+  QuizLanguage,
 } from '../../api/quiz';
 import {
   fetchQuizCategories,
@@ -26,6 +27,7 @@ interface QuizPageProps {
 interface QuizLocationState {
   autoGenerate?: boolean;
   categories?: string[];
+  language?: QuizLanguage;
 }
 
 function QuizPage({ onUnauthorized }: QuizPageProps) {
@@ -79,12 +81,13 @@ function QuizPage({ onUnauthorized }: QuizPageProps) {
 
     autoGenerateRef.current = true;
     const categories = locationState.categories ?? [];
+    const language = locationState.language ?? 'c';
 
     setIsGenerating(true);
     setScreen('loading');
     setError('');
 
-    generateQuiz(3, categories)
+    generateQuiz(3, categories, language)
       .then((data) => {
         setActiveSetId(data.id);
         setActiveTitle(data.title);
@@ -288,7 +291,15 @@ interface GenerateModalProps {
   onClose: () => void;
 }
 
-function GenerateModal({ categories, selected, loading, isGenerating, onToggle, onConfirm, onClose }: GenerateModalProps) {
+function GenerateModal({
+  categories,
+  selected,
+  loading,
+  isGenerating,
+  onToggle,
+  onConfirm,
+  onClose,
+}: GenerateModalProps) {
   return (
     <div className="gen-modal-overlay" onClick={onClose}>
       <div className="gen-modal" onClick={(e) => e.stopPropagation()}>

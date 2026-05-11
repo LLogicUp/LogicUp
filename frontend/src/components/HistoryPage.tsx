@@ -14,6 +14,7 @@ import {
 
 type HistoryTab = 'all' | 'url' | 'direct';
 type LanguageFilter = 'all' | 'c' | 'cpp' | 'python' | 'java';
+type QuizLanguage = Exclude<LanguageFilter, 'all'>;
 
 type DrillDown =
   | { kind: 'problem'; problemId: string; label: string }
@@ -82,7 +83,7 @@ function cardLanguage(card: GroupedCard): string {
 
 interface HistoryPageProps {
   onLogout: () => void;
-  onGoToQuiz?: (categories: string[]) => void;
+  onGoToQuiz?: (categories: string[], language: QuizLanguage) => void;
 }
 
 function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
@@ -247,7 +248,7 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
             {onGoToQuiz && (
               <button
                 className="problem-quiz-btn"
-                onClick={() => onGoToQuiz(card.data.categories ?? [])}
+                onClick={() => onGoToQuiz(card.data.categories ?? [], cardLanguage(card) as QuizLanguage)}
                 disabled={(card.data.categories ?? []).length === 0}
                 title={(card.data.categories ?? []).length === 0 ? '생성할 오류 유형이 없습니다.' : undefined}
               >
