@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import PillButton from '../components/ui/PillButton';
 import ProblemInput from '../components/ProblemInput';
-import CodeEditor from '../components/CodeEditor';
+import CodeEditor, { type CodeLanguage } from '../components/CodeEditor';
 import HintPanel, { type Hint } from '../components/HintPanel';
 import { postHint } from '../api/hint';
 import type { HintApiResponse } from '../api/hint';
@@ -26,6 +26,7 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
   const [expectedInput, setExpectedInput] = useState('');
   const [expectedOutput, setExpectedOutput] = useState('');
   const [code, setCode] = useState('');
+  const [language, setLanguage] = useState<CodeLanguage>('c');
   const [hints, setHints] = useState<Hint[]>([]);
   const [hintLevel, setHintLevel] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -41,7 +42,7 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
 
   useEffect(() => {
     setSubmissionId(null);
-  }, [problem, problemUrl, code, source]);
+  }, [problem, problemUrl, code, language, source]);
 
   const requestHint = async () => {
     if (!code.trim()) return;
@@ -53,6 +54,7 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
           ? { problem_url: problemUrl }
           : { problem, expected_input: expectedInput, expected_output: expectedOutput }),
         code,
+        language,
         error_log: '',
         hint_level: hintLevel,
       });
@@ -90,6 +92,7 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
     setExpectedOutput('');
     setProblemUrl('');
     setCode('');
+    setLanguage('c');
     setHints([]);
     setHintLevel(1);
     setSubmissionId(null);
@@ -120,8 +123,10 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
           <CodeEditor
             code={code}
             isDark={isDark}
+            language={language}
             locked={hints.length > 0}
             onCodeChange={setCode}
+            onLanguageChange={setLanguage}
           />
         </div>
         <div className="editor-hint-wrapper">

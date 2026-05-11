@@ -162,6 +162,48 @@ body {
   color: var(--text-primary);
 }
 
+.code-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.code-editor-header h2 {
+  margin-bottom: 0;
+}
+
+.language-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.language-select select {
+  min-width: 108px;
+  padding: 7px 28px 7px 10px;
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.language-select select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.language-select select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .code-editor .monaco-editor-wrapper {
   border: 1px solid var(--border-input);
   border-radius: 4px;
