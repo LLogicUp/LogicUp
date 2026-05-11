@@ -224,6 +224,7 @@ def get_problem_list(
         db.query(
             Submission.external_problem_id,
             func.max(Submission.title).label("title"),
+            func.max(Submission.language).label("language"),
             func.count(distinct(Hint.id)).label("hint_count"),
             func.max(Hint.created_at).label("last_hint_at"),
             func.array_agg(HintCategory.category).label("raw_categories"),
@@ -244,6 +245,7 @@ def get_problem_list(
         ProblemSummary(
             external_problem_id=row.external_problem_id,
             title=row.title or "",
+            language=row.language or "c",
             hint_count=row.hint_count,
             last_hint_at=row.last_hint_at,
             categories=list({c for c in (row.raw_categories or []) if c is not None}),
@@ -263,6 +265,7 @@ def get_direct_problem_list(
         db.query(
             Submission.problem,
             func.max(Submission.title).label("title"),
+            func.max(Submission.language).label("language"),
             func.count(distinct(Hint.id)).label("hint_count"),
             func.max(Hint.created_at).label("last_hint_at"),
             func.array_agg(HintCategory.category).label("raw_categories"),
@@ -283,6 +286,7 @@ def get_direct_problem_list(
             problem=row.problem,
             problem_snippet=row.problem[:80] if row.problem else "",
             title=row.title or "",
+            language=row.language or "c",
             hint_count=row.hint_count,
             last_hint_at=row.last_hint_at,
             categories=list({c for c in (row.raw_categories or []) if c is not None}),
