@@ -104,7 +104,14 @@ function App() {
         />
         <Route
           path="/history"
-          element={<HistoryPage onLogout={handleLogout} onGoToQuiz={() => navigate('/quiz')} />}
+          element={
+            <HistoryPage
+              onLogout={handleLogout}
+              onGoToQuiz={(categories) =>
+                navigate('/quiz', { state: { autoGenerate: true, categories } })
+              }
+            />
+          }
         />
         <Route
           path="/quiz"

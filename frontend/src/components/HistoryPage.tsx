@@ -56,7 +56,7 @@ function cardDate(card: GroupedCard): string {
 
 interface HistoryPageProps {
   onLogout: () => void;
-  onGoToQuiz?: () => void;
+  onGoToQuiz?: (categories: string[]) => void;
 }
 
 function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
@@ -204,7 +204,9 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
             {onGoToQuiz && (
               <button
                 className="problem-quiz-btn"
-                onClick={onGoToQuiz}
+                onClick={() => onGoToQuiz(card.data.categories ?? [])}
+                disabled={(card.data.categories ?? []).length === 0}
+                title={(card.data.categories ?? []).length === 0 ? '생성할 오류 유형이 없습니다.' : undefined}
               >
                 퀴즈
               </button>
