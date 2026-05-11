@@ -1,7 +1,7 @@
 import json
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from config import groq_client, logger
@@ -15,7 +15,7 @@ quiz_router = APIRouter(prefix="/quiz")
 # ── POST /quiz/generate ───────────────────────────────────────────────────────
 
 class GenerateRequest(BaseModel):
-    count: int = 3
+    count: int = Field(default=3, ge=1, le=10)
     categories: list[str] = []
 
 
