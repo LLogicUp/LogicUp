@@ -72,7 +72,8 @@ def fetch_problem_from_url(url: str) -> dict:
     logger.info(f"URL 크롤링 성공 | url={url} | title={title}")
 
     return {
-        "problem": f"[제목] {title}\n[문제 설명]\n{problem_text}",
+        "title": title,
+        "problem": problem_text,
         "expected_input": data.get("expected_input", ""),
         "expected_output": data.get("expected_output", ""),
     }

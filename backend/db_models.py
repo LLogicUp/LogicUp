@@ -34,6 +34,8 @@ class Submission(Base):
     expected_output: Mapped[str] = mapped_column(Text, nullable=False, default="")
     code: Mapped[str] = mapped_column(Text, nullable=False)
     error_log: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    title: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    language: Mapped[str] = mapped_column(String(20), nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     user: Mapped["User"] = relationship("User", back_populates="submissions")
