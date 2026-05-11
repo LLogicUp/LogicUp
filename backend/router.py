@@ -53,6 +53,7 @@ def get_hint(
             external_problem_id = request.problem_url
             if not fetched:
                 raise HTTPException(status_code=502, detail="문제를 불러오지 못했습니다")
+            title = fetched.get("title", "")
             problem = fetched.get("problem", "")
             expected_input = fetched.get("expected_input", "")
             expected_output = fetched.get("expected_output", "")
@@ -62,6 +63,7 @@ def get_hint(
             expected_output = request.expected_output
             source = "direct"
             external_problem_id = None
+            title = ""
             logger.info("직접 입력 문제 사용")
 
         if not problem:
@@ -76,12 +78,14 @@ def get_hint(
             expected_output=expected_output,
             code=request.code,
             error_log=request.error_log,
+            title=title,
+            language=request.language,
         )
         db.add(submission)
         db.flush()
         is_new_submission = True
 
-    prompt = build_prompt(problem, expected_input, expected_output, request.code, request.error_log, request.hint_level)
+    prompt = build_prompt(problem, expected_input, expected_output, request.code, request.error_log, request.hint_level, request.language)
 
     logger.info(f"LLM 요청 시작 | model=openai/gpt-oss-120b | prompt_length={len(prompt)}")
 
@@ -102,6 +106,11 @@ def get_hint(
     pseudocode = result.get("pseudocode", "")
     error_categories = result.get("error_categories", [])
     logger.info(f"에러 카테고리 분류 | user_id={current_user_id} | categories={error_categories}")
+
+    if is_new_submission and submission.source == "direct":
+        llm_title = result.get("title", "")
+        if llm_title:
+            submission.title = llm_title
 
     if is_new_submission:
         for cat in error_categories:
@@ -212,6 +221,7 @@ def get_problem_list(
     rows = (
         db.query(
             Submission.external_problem_id,
+            func.max(Submission.title).label("title"),
             func.count(distinct(Hint.id)).label("hint_count"),
             func.max(Hint.created_at).label("last_hint_at"),
             func.array_agg(HintCategory.category).label("raw_categories"),
@@ -231,6 +241,7 @@ def get_problem_list(
     return ProblemListResponse(items=[
         ProblemSummary(
             external_problem_id=row.external_problem_id,
+            title=row.title or "",
             hint_count=row.hint_count,
             last_hint_at=row.last_hint_at,
             categories=list({c for c in (row.raw_categories or []) if c is not None}),
@@ -249,6 +260,7 @@ def get_direct_problem_list(
     rows = (
         db.query(
             Submission.problem,
+            func.max(Submission.title).label("title"),
             func.count(distinct(Hint.id)).label("hint_count"),
             func.max(Hint.created_at).label("last_hint_at"),
             func.array_agg(HintCategory.category).label("raw_categories"),
@@ -268,6 +280,7 @@ def get_direct_problem_list(
         DirectProblemSummary(
             problem=row.problem,
             problem_snippet=row.problem[:80] if row.problem else "",
+            title=row.title or "",
             hint_count=row.hint_count,
             last_hint_at=row.last_hint_at,
             categories=list({c for c in (row.raw_categories or []) if c is not None}),
