@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OJ 모드 View 목업</title>
+  <style>
+    :root {
+      --burgundy-primary: #8B1F2F;
+      --burgundy-deep:    #6B1822;
+      --bg-page:          #F5F5F7;
+      --bg-card:          #FFFFFF;
+      --bg-hint:          #F8F8FA;
+      --border-soft:      #EAEAEA;
+      --border-strong:    #D9D9DD;
+      --text-primary:     #1A1A1A;
+      --text-secondary:   #4A4A4A;
+      --text-muted:       #6B7280;
+      --accent-red:       #C8102E;
+      --accent-red-soft:  #FCE9EC;
+      --shadow-card:      0 1px 3px rgba(0,0,0,0.06);
+      --radius-card:      12px;
+      --radius-pill:      999px;
+      --font-family:      'Pretendard', 'Noto Sans KR', -apple-system, sans-serif;
+      --accent:           #8B1F2F;
+      --border-color:     #EAEAEA;
+      --border-input:     #D9D9DD;
+      --input-bg:         #FFFFFF;
+      --shadow:           rgba(0,0,0,0.06);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-family); background: var(--bg-page); color: var(--text-primary); min-height: 100vh; }
+
+    /* ── 헤더 ── */
+    .lu-header { background: linear-gradient(180deg, #8B1F2F 0%, #6B1822 100%); color: #fff; padding: 0.5rem 3.5rem 0; }
+    .lu-header__top { display: flex; justify-content: space-between; align-items: center; }
+    .lu-header__logo { display: flex; align-items: center; gap: 0.5rem; }
+    .lu-header__logo-mark { width: 2rem; height: 2rem; border-radius: 50%; background: #fff; color: #8B1F2F; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; }
+    .lu-header__logo-ko { font-size: 1rem; font-weight: 800; letter-spacing: -1px; }
+    .lu-header__utils { display: flex; align-items: center; gap: 0.6rem; font-size: 0.75rem; }
+    .lu-header__util-btn { border: 1px solid rgba(255,255,255,0.5); background: transparent; color: #fff; padding: 0.25rem 0.6rem; border-radius: 999px; font-size: 0.7rem; cursor: pointer; }
+    .lu-header__tabs { display: flex; gap: 1.5rem; padding: 0.5rem 0 0; margin-top: 0.25rem; }
+    .lu-header__tab { background: none; border: none; border-bottom: 2px solid transparent; color: rgba(255,255,255,0.8); font-size: 0.8rem; font-weight: 500; padding: 0.35rem 0; cursor: pointer; font-family: var(--font-family); }
+    .lu-header__tab--active { color: #fff; font-weight: 700; border-bottom-color: #fff; }
+
+    /* ── 레이아웃 ── */
+    .main-container { display: flex; padding: 20px; gap: 20px; align-items: flex-start; }
+    .left-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+    .editor-hint-wrapper { flex: 1; min-width: 0; }
+
+    /* ── 카드 ── */
+    .lu-card { background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding: 20px 22px; }
+    .lu-card__title { font-size: 0.9rem; font-weight: 800; letter-spacing: -0.4px; color: var(--text-primary); margin-bottom: 14px; }
+
+    /* ── 선택 행 (단계 / 주차 / 문제) ── */
+    .oj-select-row { display: flex; flex-direction: column; gap: 12px; }
+
+    .oj-row-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 2px;
+    }
+
+    /* 단계 탭 */
+    .oj-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+    .oj-tab {
+      padding: 5px 14px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-pill);
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-family);
+      transition: all 0.15s;
+    }
+    .oj-tab:hover { border-color: var(--accent); color: var(--accent); }
+    .oj-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .oj-tab:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* 주차 탭 (단계 선택 후 등장) */
+    .oj-week-row { display: none; }
+    .oj-week-row.visible { display: block; }
+
+    /* 문제 목록 */
+    .oj-problem-row-wrap { display: none; }
+    .oj-problem-row-wrap.visible { display: block; }
+
+    .oj-problem-select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border-input);
+      border-radius: 8px;
+      background: var(--input-bg);
+      color: var(--text-primary);
+      font: inherit;
+      font-size: 0.88rem;
+      cursor: pointer;
+      appearance: auto;
+    }
+    .oj-problem-select:focus { outline: none; border-color: var(--accent); }
+
+    /* 선택된 문제 뱃지 */
+    .oj-selected-badge {
+      display: none; align-items: center; gap: 8px;
+      padding: 8px 12px;
+      background: var(--accent-red-soft);
+      border: 1px solid rgba(200,16,46,0.2);
+      border-radius: 8px;
+      font-size: 0.82rem;
+    }
+    .oj-selected-badge.visible { display: flex; }
+    .oj-selected-label { color: var(--text-muted); font-size: 0.7rem; white-space: nowrap; }
+    .oj-selected-title { font-weight: 600; color: var(--accent); flex: 1; }
+    .oj-selected-clear { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; padding: 0; }
+
+    /* ── 코드 에디터 카드 ── */
+    .code-editor-card { background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding: 20px 22px; }
+    .code-editor-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .code-editor-header h2 { font-size: 0.9rem; font-weight: 800; color: var(--text-primary); }
+    .language-select { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; }
+    .language-select select { padding: 5px 10px; border: 1px solid var(--border-input); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font: inherit; font-size: 0.8rem; }
+    .monaco-placeholder { border: 1px solid var(--border-input); border-radius: 4px; background: #1e1e1e; color: #d4d4d4; padding: 16px; min-height: 280px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6; white-space: pre; }
+    .dim { color: #555; font-style: italic; }
+    .kw { color: #569cd6; }
+    .str { color: #ce9178; }
+    .cursor { animation: blink 1s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ── 힌트 패널 ── */
+    .hint-display { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px var(--shadow); }
+    .hint-display h2 { margin: 0 0 14px; font-size: 0.9rem; font-weight: 800; color: var(--text-primary); }
+    .hint-placeholder { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6; }
+
+    /* ── 푸터 ── */
+    .App-footer { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 14px 56px; background: var(--bg-card); border-top: 1px solid var(--border-soft); }
+    .btn-primary { padding: 8px 20px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-pill); font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: var(--font-family); transition: background 0.15s; }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-outline { padding: 7px 16px; background: transparent; color: var(--text-secondary); border: 1px solid var(--border-strong); border-radius: var(--radius-pill); font-size: 0.82rem; cursor: pointer; font-family: var(--font-family); }
+
+    /* 구분선 */
+    .oj-divider { height: 1px; background: var(--border-soft); margin: 4px 0; }
+  </style>
+</head>
+<body>
+
+<header class="lu-header">
+  <div class="lu-header__top">
+    <div class="lu-header__logo">
+      <div class="lu-header__logo-mark">L</div>
+      <span class="lu-header__logo-ko">LogicUp</span>
+    </div>
+    <div class="lu-header__utils">
+      <span>김찬영님 안녕하세요.</span>
+      <button class="lu-header__util-btn">로그아웃</button>
+    </div>
+  </div>
+  <nav class="lu-header__tabs">
+    <button class="lu-header__tab">홈</button>
+    <button class="lu-header__tab">직접 입력</button>
+    <button class="lu-header__tab">문제 불러오기</button>
+    <button class="lu-header__tab lu-header__tab--active">OJ</button>
+    <button class="lu-header__tab">히스토리</button>
+    <button class="lu-header__tab">퀴즈</button>
+  </nav>
+</header>
+
+<main class="main-container">
+  <div class="left-col">
+
+    <!-- OJ 문제 선택 카드 -->
+    <div class="lu-card">
+      <div class="lu-card__title">OJ 문제 선택</div>
+
+      <div class="oj-select-row">
+
+        <!-- ① 단계 선택 -->
+        <div>
+          <div class="oj-row-label">단계</div>
+          <div class="oj-tabs">
+            <button class="oj-tab" onclick="selectLevel(this, 'c')">C 기초</button>
+            <button class="oj-tab" onclick="selectLevel(this, 'advanced')">고급 C</button>
+            <button class="oj-tab" onclick="selectLevel(this, 'ds')">자료구조</button>
+            <button class="oj-tab" onclick="selectLevel(this, 'algo')">알고리즘</button>
+          </div>
+        </div>
+
+        <!-- ② 주차 선택 (단계 선택 후 표시) -->
+        <div class="oj-week-row" id="week-row">
+          <div class="oj-row-label">주차</div>
+          <div class="oj-tabs" id="week-tabs"></div>
+        </div>
+
+        <!-- ③ 문제 선택 드롭다운 (주차 선택 후 표시) -->
+        <div class="oj-problem-row-wrap" id="problem-wrap">
+          <div class="oj-row-label">문제</div>
+          <select class="oj-problem-select" id="problem-select" onchange="selectProblemFromSelect(this)">
+            <option value="">문제를 선택하세요</option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 선택된 문제 뱃지 -->
+    <div class="oj-selected-badge" id="selected-badge">
+      <span class="oj-selected-label">선택된 문제</span>
+      <span class="oj-selected-title" id="selected-title"></span>
+      <button class="oj-selected-clear" onclick="clearProblem()">✕</button>
+    </div>
+
+    <!-- 코드 에디터 -->
+    <div class="code-editor-card">
+      <div class="code-editor-header">
+        <h2>코드 작성</h2>
+        <div class="language-select">
+          언어
+          <select>
+            <option>C</option>
+            <option>C++</option>
+            <option>Python</option>
+            <option>Java</option>
+          </select>
+        </div>
+      </div>
+      <div class="monaco-placeholder"><span class="dim">// 문제를 선택한 후 코드를 작성하세요</span>
+
+<span class="kw">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+
+<span class="kw">int</span> main() {
+    <span class="cursor">|</span>
+}</div>
+    </div>
+
+  </div>
+
+  <!-- 오른쪽: 힌트 패널 -->
+  <div class="editor-hint-wrapper">
+    <div class="hint-display">
+      <h2>힌트</h2>
+      <p class="hint-placeholder">문제를 선택하고<br>코드를 작성한 후<br>힌트를 요청해보세요.</p>
+    </div>
+  </div>
+</main>
+
+<footer class="App-footer">
+  <button class="btn-outline">Reset</button>
+  <button class="btn-primary" id="hint-btn" disabled>힌트 요청 (1단계) →</button>
+</footer>
+
+<script>
+  const DATA = {
+    c:        { weeks: [1,2,3,4,5,6], problems: { 1: ['Hello World 출력하기|출력', '이름 출력하기|출력'], 2: ['두 수의 합|입출력,변수', '세 수의 평균|변수'], 3: ['홀수 짝수 판별|조건문', '양수 음수 판별|조건문'], 4: ['1부터 N까지의 합|반복문', '구구단 출력|반복문'], 5: ['팩토리얼|반복문,재귀', '피보나치 수열|재귀'], 6: ['배열 최댓값|배열', '배열 뒤집기|배열'] } },
+    advanced: { weeks: [1,2,3,4], problems: { 1: ['포인터로 값 교환|포인터', '포인터 연산|포인터'], 2: ['동적 배열 구현|동적메모리', 'malloc/free 실습|동적메모리'], 3: ['구조체로 학생 관리|구조체', '구조체 배열|구조체'], 4: ['파일 입출력|파일', '텍스트 파일 읽기|파일'] } },
+    ds:       { weeks: [1,2,3,4,5], problems: { 1: ['스택 구현|스택', '스택으로 괄호 검사|스택'], 2: ['큐 구현|큐', '원형 큐|큐'], 3: ['단순 연결 리스트|연결리스트', '이중 연결 리스트|연결리스트,포인터'], 4: ['이진 트리 구현|트리', '트리 순회|트리'], 5: ['해시 테이블|해시', '충돌 해결|해시'] } },
+    algo:     { weeks: [1,2,3,4], problems: { 1: ['버블 정렬|정렬', '선택 정렬|정렬'], 2: ['이진 탐색|탐색', '선형 탐색 최적화|탐색'], 3: ['피보나치 DP|DP', '최장 증가 부분수열|DP'], 4: ['BFS 탐색|그래프', 'DFS 탐색|그래프'] } },
+  };
+
+  let currentLevel = null;
+  let currentWeek = null;
+
+  function selectLevel(btn, level) {
+    document.querySelectorAll('.oj-tabs')[0].querySelectorAll('.oj-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentLevel = level;
+    currentWeek = null;
+    clearProblem();
+
+    // 주차 탭 렌더링
+    const weekTabs = document.getElementById('week-tabs');
+    weekTabs.innerHTML = DATA[level].weeks.map(w =>
+      `<button class="oj-tab" onclick="selectWeek(this, ${w})">${w}주차</button>`
+    ).join('');
+    document.getElementById('week-row').classList.add('visible');
+    document.getElementById('problem-wrap').classList.remove('visible');
+    document.getElementById('problem-list').innerHTML = '';
+  }
+
+  function selectWeek(btn, week) {
+    document.getElementById('week-tabs').querySelectorAll('.oj-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentWeek = week;
+    clearProblem();
+
+    // 문제 드롭다운 렌더링
+    const problems = DATA[currentLevel].problems[week];
+    const select = document.getElementById('problem-select');
+    select.innerHTML = '<option value="">문제를 선택하세요</option>' +
+      problems.map((p, i) => {
+        const [title] = p.split('|');
+        return `<option value="${i}">#${i+1} · ${title}</option>`;
+      }).join('');
+    document.getElementById('problem-wrap').classList.add('visible');
+    clearProblem();
+  }
+
+  function selectProblemFromSelect(select) {
+    if (!select.value) { clearProblem(); return; }
+    const title = select.options[select.selectedIndex].text;
+    document.getElementById('selected-title').textContent = title;
+    document.getElementById('selected-badge').classList.add('visible');
+    document.getElementById('hint-btn').disabled = false;
+  }
+
+  function clearProblem() {
+    document.getElementById('problem-select').value = '';
+    document.getElementById('selected-badge').classList.remove('visible');
+    document.getElementById('hint-btn').disabled = true;
+  }
+</script>
+</body>
+</html>
