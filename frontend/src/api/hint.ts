@@ -2,6 +2,8 @@ import { authHeaders, clearToken } from './auth';
 
 export interface HintRequest {
   submission_id: number | null;
+  source?: 'direct' | 'url' | 'oj';
+  problem_id?: number;
   problem?: string;
   problem_url?: string;
   code: string;

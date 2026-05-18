@@ -39,7 +39,6 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
   const [loading, setLoading] = useState(false);
   const [submissionId, setSubmissionId] = useState<number | null>(null);
 
-  // source 변경 시 문제 입력 초기화
   useEffect(() => {
     setProblem('');
     setExpectedInput('');
@@ -130,6 +129,7 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
 
   const requestHint = async () => {
     if (!code.trim()) return;
+    if (source === 'oj' && !ojProblem) return;
     setLoading(true);
     try {
       const ojProblem = source === 'oj' && ojSubject && ojChapter && ojProblemNumber
@@ -138,7 +138,9 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
 
       const data: HintApiResponse = await postHint({
         submission_id: submissionId,
-        ...(source === 'url'
+        ...(source === 'oj' && ojProblem
+          ? { source: 'oj', problem_id: ojProblem.id }
+          : source === 'url'
           ? { problem_url: problemUrl }
           : source === 'oj'
             ? {
@@ -261,7 +263,7 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
             variant="primary"
             style={{ background: 'var(--accent-red)', fontSize: '13px', padding: '8px 20px' }}
             onClick={requestHint}
-            disabled={loading || hintLevel > 3}
+            disabled={isHintDisabled}
           >
             {getButtonLabel()} →
           </PillButton>

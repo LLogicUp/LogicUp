@@ -12,7 +12,7 @@ export const OJ_SUBJECT_LABELS: Record<OjSubject, string> = {
 };
 
 interface ProblemInputProps {
-  source: Source;
+  source: 'direct' | 'url';
   problem: string;
   expectedInput: string;
   expectedOutput: string;
@@ -92,23 +92,6 @@ function ProblemInput({
               disabled={locked}
             />
           </div>
-        </div>
-      </Card>
-    );
-  }
-
-  if (source === 'url') {
-    return (
-      <Card title="문제 불러오기">
-        <div className="input-field">
-          <label>문제 URL</label>
-          <input
-            type="text"
-            className="problem-url-input"
-            value={problemUrl}
-            onChange={(e) => onProblemUrlChange(e.target.value)}
-            placeholder="문제 URL을 입력하세요 (예: https://www.acmicpc.net/problem/1000)"
-          />
         </div>
       </Card>
     );
