@@ -9,7 +9,36 @@ from database import get_db
 from db_models import User
 from auth import hash_password, verify_password, create_token
 from dotenv import load_dotenv
+import ssl
+import requests.sessions
+from requests.adapters import HTTPAdapter
 from sejong_univ_auth import auth
+
+
+class LegacySSLAdapter(HTTPAdapter):
+    def init_poolmanager(self, *args, **kwargs):
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        ctx.set_ciphers('DEFAULT:@SECLEVEL=1')
+        ctx.options &= ~(getattr(ssl, 'OP_NO_TLSv1', 0) | getattr(ssl, 'OP_NO_TLSv1_1', 0))
+        ctx.options |= getattr(ssl, 'OP_LEGACY_SERVER_CONNECT', 0x4)
+        kwargs['ssl_context'] = ctx
+        return super().init_poolmanager(*args, **kwargs)
+
+
+def _sejong_auth(student_id: str, password: str):
+    orig = requests.sessions.Session.__init__
+
+    def patched(self, *args, **kwargs):
+        orig(self, *args, **kwargs)
+        self.mount('https://', LegacySSLAdapter())
+
+    requests.sessions.Session.__init__ = patched
+    try:
+        return auth(id=student_id, password=password)
+    finally:
+        requests.sessions.Session.__init__ = orig
 
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
@@ -178,7 +207,7 @@ def sejong_login(request: SejongLoginRequest, db: Session = Depends(get_db)):
     logger.info(f"세종대 로그인 요청 | student_id={request.student_id}")
 
     try:
-        result = auth(id=request.student_id, password=request.password)
+        result = _sejong_auth(request.student_id, request.password)
     except Exception:
         logger.exception(f"세종대 포털 인증 예외 | student_id={request.student_id}")
         raise HTTPException(status_code=502, detail="세종대 포털 서버에 연결할 수 없습니다")
