@@ -1,0 +1,24 @@
+{
+  "chapter": 12,
+  "problems": [
+    {
+      "number": 1,
+      "title": "위상순서 찾기",
+      "description": "주어진 방향그래프 G에 대해 다음을 수행하는 프로그램을 작성하라.\n1) G가 방향 비사이클 그래프(DAG)이면 위상순서(topological order)를 구해 출력한다.\n2) G에 방향 사이클이 존재하면 위상순서를 구할 수 없으므로 0을 출력한다.\n\n구현 조건:\n- 그래프는 인접리스트 구조로 표현한다.\n- 진입차수(in-degree)를 이용하는 위상 정렬 알고리즘을 사용한다.\n- 부착리스트 구축 시 새로 입력되는 간선 노드를 리스트 맨 앞에 삽입한다.\n- 위상 정렬에서 최초로 진입차수가 0인 정점을 찾을 때 정점 번호 순서대로 조사한다.\n\n입력 형식:\n- 첫 줄에 정점 수 n이 주어진다.\n- 둘째 줄에 n개의 정점 이름(단순 문자)이 주어진다.\n- 셋째 줄에 방향간선 수 m이 주어진다.\n- 이후 m개의 줄에 방향간선 정보(시점 이름, 종점 이름)가 주어진다.\n\n출력 형식:\n- DAG이면 위상순서(정점 이름을 공백으로 구분하여 출력), 방향 사이클이 존재하면 0을 출력한다.",
+      "examples": [
+        {
+          "input": "3\nA B C\n3\nA B\nC A\nC B",
+          "output": "C A B"
+        },
+        {
+          "input": "4\nA B C D\n6\nA B\nC A\nC B\nA D\nB D\nD C",
+          "output": "0"
+        },
+        {
+          "input": "8\nA B C D E F G H\n11\nA B\nC B\nA D\nC D\nB D\nD E\nE F\nE H\nE G\nF G\nH G",
+          "output": "A C B D E H F G"
+        }
+      ]
+    }
+  ]
+}
