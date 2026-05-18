@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 import ssl
 import requests.sessions
 from requests.adapters import HTTPAdapter
-from sejong_univ_auth import auth
+from sejong_univ_auth import auth, DosejongSession
 
 
 class LegacySSLAdapter(HTTPAdapter):
@@ -36,7 +36,7 @@ def _sejong_auth(student_id: str, password: str):
 
     requests.sessions.Session.__init__ = patched
     try:
-        return auth(id=student_id, password=password)
+        return auth(id=student_id, password=password, methods=DosejongSession)
     finally:
         requests.sessions.Session.__init__ = orig
 
