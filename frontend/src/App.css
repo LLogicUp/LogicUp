@@ -157,6 +157,107 @@ body {
   color: var(--text-primary);
 }
 
+.oj-input-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.5fr) minmax(96px, 0.75fr) minmax(120px, 0.85fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.oj-select,
+.oj-number-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  font-family: inherit;
+  box-sizing: border-box;
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+}
+
+.oj-select:focus,
+.oj-number-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.oj-select:disabled,
+.oj-number-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.oj-current-target {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-hint);
+  border-radius: 6px;
+  background: var(--bg-hint);
+  text-align: left;
+}
+
+.oj-status {
+  margin: 0 0 10px;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.oj-status--error {
+  color: var(--accent-red);
+}
+
+.oj-current-target__label {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.oj-current-target__value {
+  min-width: 0;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.oj-mode-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(139, 31, 47, 0.18);
+  border-radius: 6px;
+  background: rgba(139, 31, 47, 0.06);
+  text-align: left;
+}
+
+.oj-mode-summary__tag {
+  flex-shrink: 0;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--burgundy-primary);
+  color: var(--text-on-burgundy);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.oj-mode-summary__text {
+  min-width: 0;
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
 .code-editor h2, .hint-display h2 {
   margin-top: 0;
   color: var(--text-primary);
@@ -352,6 +453,18 @@ body {
 }
 
 @media (max-width: 768px) {
+  .main-container,
+  .example-row,
+  .oj-current-target,
+  .oj-mode-summary {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .oj-input-grid {
+    grid-template-columns: 1fr;
+  }
+
   .App-footer {
     flex-direction: column;
     padding: 14px 16px;
@@ -858,6 +971,60 @@ body {
 .kakao-login-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.social-login-row {
+  display: flex;
+  gap: 8px;
+}
+
+.social-login-row .kakao-login-btn {
+  flex: 1;
+}
+
+.sejong-login-btn {
+  flex: 1;
+  padding: 10px;
+  background-color: #003c8b;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.sejong-login-btn:hover:not(:disabled) {
+  background-color: #002d6b;
+}
+
+.sejong-login-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sejong-form-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-primary, #333);
+}
+
+.sejong-back-btn {
+  background: transparent;
+  border: none;
+  color: var(--burgundy-primary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+}
+
+.sejong-back-btn:hover {
+  text-decoration: underline;
 }
 
 /* ─── 퀴즈 공통 ─── */
