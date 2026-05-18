@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import PillButton from '../components/ui/PillButton';
 import ProblemInput from '../components/ProblemInput';
+import OJProblemSelector from '../components/oj/OJProblemSelector';
 import CodeEditor, { type CodeLanguage } from '../components/CodeEditor';
 import HintPanel, { type Hint } from '../components/HintPanel';
 import { postHint } from '../api/hint';
 import type { HintApiResponse } from '../api/hint';
+import type { OJProblemSummary } from '../api/oj';
 
 type Source = 'direct' | 'url' | 'oj';
 
@@ -25,6 +27,7 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
   const [problem, setProblem] = useState('');
   const [expectedInput, setExpectedInput] = useState('');
   const [expectedOutput, setExpectedOutput] = useState('');
+  const [ojProblem, setOJProblem] = useState<OJProblemSummary | null>(null);
   const [code, setCode] = useState('');
   const [language, setLanguage] = useState<CodeLanguage>('c');
   const [hints, setHints] = useState<Hint[]>([]);
@@ -32,25 +35,28 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
   const [loading, setLoading] = useState(false);
   const [submissionId, setSubmissionId] = useState<number | null>(null);
 
-  // source 변경 시 문제 입력 초기화
   useEffect(() => {
     setProblem('');
     setExpectedInput('');
     setExpectedOutput('');
     setProblemUrl('');
+    setOJProblem(null);
   }, [source]);
 
   useEffect(() => {
     setSubmissionId(null);
-  }, [problem, problemUrl, code, language, source]);
+  }, [problem, problemUrl, ojProblem, code, language, source]);
 
   const requestHint = async () => {
     if (!code.trim()) return;
+    if (source === 'oj' && !ojProblem) return;
     setLoading(true);
     try {
       const data: HintApiResponse = await postHint({
         submission_id: submissionId,
-        ...(source === 'url'
+        ...(source === 'oj' && ojProblem
+          ? { source: 'oj', problem_id: ojProblem.id }
+          : source === 'url'
           ? { problem_url: problemUrl }
           : { problem, expected_input: expectedInput, expected_output: expectedOutput }),
         code,
@@ -91,6 +97,7 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
     setExpectedInput('');
     setExpectedOutput('');
     setProblemUrl('');
+    setOJProblem(null);
     setCode('');
     setLanguage('c');
     setHints([]);
@@ -104,22 +111,32 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
     return `힌트 요청 (${hintLevel}단계)`;
   };
 
+  const isHintDisabled = loading || hintLevel > 3 || (source === 'oj' && !ojProblem);
+
   return (
     <>
       <main className="main-container">
         <div className="code-editor">
-          <ProblemInput
-            source={source}
-            problem={problem}
-            expectedInput={expectedInput}
-            expectedOutput={expectedOutput}
-            problemUrl={problemUrl}
-            locked={hints.length > 0}
-            onProblemChange={setProblem}
-            onExpectedInputChange={setExpectedInput}
-            onExpectedOutputChange={setExpectedOutput}
-            onProblemUrlChange={setProblemUrl}
-          />
+          {source === 'oj' ? (
+            <OJProblemSelector
+              selectedProblem={ojProblem}
+              locked={hints.length > 0}
+              onProblemChange={setOJProblem}
+            />
+          ) : (
+            <ProblemInput
+              source={source}
+              problem={problem}
+              expectedInput={expectedInput}
+              expectedOutput={expectedOutput}
+              problemUrl={problemUrl}
+              locked={hints.length > 0}
+              onProblemChange={setProblem}
+              onExpectedInputChange={setExpectedInput}
+              onExpectedOutputChange={setExpectedOutput}
+              onProblemUrlChange={setProblemUrl}
+            />
+          )}
           <CodeEditor
             code={code}
             isDark={isDark}
@@ -139,7 +156,7 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
             variant="primary"
             style={{ background: 'var(--accent-red)', fontSize: '13px', padding: '8px 20px' }}
             onClick={requestHint}
-            disabled={loading || hintLevel > 3}
+            disabled={isHintDisabled}
           >
             {getButtonLabel()} →
           </PillButton>

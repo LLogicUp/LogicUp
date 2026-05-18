@@ -1,8 +1,7 @@
 import Card from './ui/Card';
-import type { Source } from './Header';
 
 interface ProblemInputProps {
-  source: Source;
+  source: 'direct' | 'url';
   problem: string;
   expectedInput: string;
   expectedOutput: string;
@@ -65,26 +64,18 @@ function ProblemInput({
     );
   }
 
-  if (source === 'url') {
-    return (
-      <Card title="문제 불러오기">
-        <div className="input-field">
-          <label>문제 URL</label>
-          <input
-            type="text"
-            className="problem-url-input"
-            value={problemUrl}
-            onChange={(e) => onProblemUrlChange(e.target.value)}
-            placeholder="문제 URL을 입력하세요 (예: https://www.acmicpc.net/problem/1000)"
-          />
-        </div>
-      </Card>
-    );
-  }
-
   return (
-    <Card title="문제 입력">
-      <p className="hint-placeholder">준비 중입니다.</p>
+    <Card title="문제 불러오기">
+      <div className="input-field">
+        <label>문제 URL</label>
+        <input
+          type="text"
+          className="problem-url-input"
+          value={problemUrl}
+          onChange={(e) => onProblemUrlChange(e.target.value)}
+          placeholder="문제 URL을 입력하세요 (예: https://www.acmicpc.net/problem/1000)"
+        />
+      </div>
     </Card>
   );
 }
