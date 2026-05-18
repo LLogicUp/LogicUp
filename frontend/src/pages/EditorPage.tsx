@@ -129,7 +129,7 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
 
   const requestHint = async () => {
     if (!code.trim()) return;
-    if (source === 'oj' && !ojProblem) return;
+    if (source === 'oj' && (!ojSubject || !ojChapter || !ojProblemNumber)) return;
     setLoading(true);
     try {
       const ojProblem = source === 'oj' && ojSubject && ojChapter && ojProblemNumber
@@ -138,9 +138,7 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
 
       const data: HintApiResponse = await postHint({
         submission_id: submissionId,
-        ...(source === 'oj' && ojProblem
-          ? { source: 'oj', problem_id: ojProblem.id }
-          : source === 'url'
+        ...(source === 'url'
           ? { problem_url: problemUrl }
           : source === 'oj'
             ? {
@@ -202,6 +200,12 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
     if (hintLevel > 3) return '힌트 완료';
     return `힌트 요청 (${hintLevel}단계)`;
   };
+
+  const isHintDisabled =
+    loading ||
+    hintLevel > 3 ||
+    !code.trim() ||
+    (source === 'oj' && (!ojSubject || !ojChapter || !ojProblemNumber));
 
   const ojSelectionLabel = [
     selectedOjSubject?.label ?? OJ_SUBJECT_LABELS[ojSubject] ?? ojSubject,

@@ -12,7 +12,7 @@ export const OJ_SUBJECT_LABELS: Record<OjSubject, string> = {
 };
 
 interface ProblemInputProps {
-  source: 'direct' | 'url';
+  source: Source;
   problem: string;
   expectedInput: string;
   expectedOutput: string;
