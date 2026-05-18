@@ -177,7 +177,12 @@ class SejongLoginRequest(BaseModel):
 def sejong_login(request: SejongLoginRequest, db: Session = Depends(get_db)):
     logger.info(f"세종대 로그인 요청 | student_id={request.student_id}")
 
-    result = auth(id=request.student_id, password=request.password)
+    try:
+        result = auth(id=request.student_id, password=request.password)
+    except Exception:
+        logger.exception(f"세종대 포털 인증 예외 | student_id={request.student_id}")
+        raise HTTPException(status_code=502, detail="세종대 포털 서버에 연결할 수 없습니다")
+
     if not result.success:
         logger.warning(f"세종대 서버 오류 | student_id={request.student_id}")
         raise HTTPException(status_code=502, detail="세종대 포털 서버에 연결할 수 없습니다")
@@ -191,7 +196,8 @@ def sejong_login(request: SejongLoginRequest, db: Session = Depends(get_db)):
         logger.exception(f"세종대 로그인 DB 조회 오류 | student_id={request.student_id}")
         raise HTTPException(status_code=503, detail="서버가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해주세요.")
 
-    nickname = result.body.get("name", request.student_id)
+    body = result.body if isinstance(result.body, dict) else {}
+    nickname = body.get("name", request.student_id)
 
     if not user:
         user = User(userid=request.student_id, nickname=nickname)
