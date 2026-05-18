@@ -9,6 +9,7 @@ from database import get_db
 from db_models import User
 from auth import hash_password, verify_password, create_token
 from dotenv import load_dotenv
+from sejong_univ_auth import auth
 
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
@@ -164,4 +165,47 @@ def kakao_login(request: KakaoLoginRequest, db: Session = Depends(get_db)):
     token = create_token({"user_id": user.id, "nickname": user.nickname})
 
     logger.info(f"카카오 로그인 성공 | kakao_id={kakao_id} | user_id={user.id}")
+    return {"access_token": token}
+
+
+class SejongLoginRequest(BaseModel):
+    student_id: str
+    password: str
+
+
+@auth_router.post("/auth/sejong")
+def sejong_login(request: SejongLoginRequest, db: Session = Depends(get_db)):
+    logger.info(f"세종대 로그인 요청 | student_id={request.student_id}")
+
+    result = auth(id=request.student_id, password=request.password)
+    if not result.success:
+        logger.warning(f"세종대 서버 오류 | student_id={request.student_id}")
+        raise HTTPException(status_code=502, detail="세종대 포털 서버에 연결할 수 없습니다")
+    if not result.is_auth:
+        logger.warning(f"세종대 인증 실패 | student_id={request.student_id}")
+        raise HTTPException(status_code=401, detail="세종대 포털 인증에 실패했습니다")
+
+    try:
+        user = db.query(User).filter(User.userid == request.student_id).first()
+    except Exception:
+        logger.exception(f"세종대 로그인 DB 조회 오류 | student_id={request.student_id}")
+        raise HTTPException(status_code=503, detail="서버가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해주세요.")
+
+    nickname = result.body.get("name", request.student_id)
+
+    if not user:
+        user = User(userid=request.student_id, nickname=nickname)
+        db.add(user)
+        try:
+            db.commit()
+            db.refresh(user)
+        except Exception:
+            db.rollback()
+            logger.exception(f"세종대 자동 회원가입 저장 오류 | student_id={request.student_id}")
+            raise HTTPException(status_code=503, detail="세종대 로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+        logger.info(f"세종대 자동 회원가입 | student_id={request.student_id} | user_id={user.id}")
+
+    token = create_token({"user_id": user.id, "nickname": user.nickname})
+
+    logger.info(f"세종대 로그인 성공 | student_id={request.student_id} | user_id={user.id}")
     return {"access_token": token}
