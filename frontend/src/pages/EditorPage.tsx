@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import PillButton from '../components/ui/PillButton';
-import ProblemInput from '../components/ProblemInput';
+import ProblemInput, { OJ_SUBJECT_LABELS, type OjSubject } from '../components/ProblemInput';
 import CodeEditor, { type CodeLanguage } from '../components/CodeEditor';
 import HintPanel, { type Hint } from '../components/HintPanel';
 import { postHint } from '../api/hint';
@@ -25,6 +25,9 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
   const [problem, setProblem] = useState('');
   const [expectedInput, setExpectedInput] = useState('');
   const [expectedOutput, setExpectedOutput] = useState('');
+  const [ojSubject, setOjSubject] = useState<OjSubject>('c_program');
+  const [ojChapter, setOjChapter] = useState('');
+  const [ojProblemNumber, setOjProblemNumber] = useState('');
   const [code, setCode] = useState('');
   const [language, setLanguage] = useState<CodeLanguage>('c');
   const [hints, setHints] = useState<Hint[]>([]);
@@ -38,11 +41,23 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
     setExpectedInput('');
     setExpectedOutput('');
     setProblemUrl('');
+    setOjSubject('c_program');
+    setOjChapter('');
+    setOjProblemNumber('');
   }, [source]);
 
   useEffect(() => {
     setSubmissionId(null);
-  }, [problem, problemUrl, code, language, source]);
+  }, [problem, problemUrl, ojSubject, ojChapter, ojProblemNumber, code, language, source]);
+
+  const buildOjProblemText = () => {
+    return [
+      'OJ 문제 조회 정보',
+      `과목: ${OJ_SUBJECT_LABELS[ojSubject]} (${ojSubject})`,
+      `장: ${ojChapter || '미입력'}`,
+      `문제 번호: ${ojProblemNumber || '미입력'}`,
+    ].join('\n');
+  };
 
   const requestHint = async () => {
     if (!code.trim()) return;
@@ -52,7 +67,9 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
         submission_id: submissionId,
         ...(source === 'url'
           ? { problem_url: problemUrl }
-          : { problem, expected_input: expectedInput, expected_output: expectedOutput }),
+          : source === 'oj'
+            ? { problem: buildOjProblemText(), expected_input: '', expected_output: '' }
+            : { problem, expected_input: expectedInput, expected_output: expectedOutput }),
         code,
         language,
         error_log: '',
@@ -91,6 +108,9 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
     setExpectedInput('');
     setExpectedOutput('');
     setProblemUrl('');
+    setOjSubject('c_program');
+    setOjChapter('');
+    setOjProblemNumber('');
     setCode('');
     setLanguage('c');
     setHints([]);
@@ -104,21 +124,39 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
     return `힌트 요청 (${hintLevel}단계)`;
   };
 
+  const ojSelectionLabel = [
+    OJ_SUBJECT_LABELS[ojSubject],
+    ojChapter ? `${ojChapter}장` : '장 미선택',
+    ojProblemNumber ? `${ojProblemNumber}번` : '문제 미선택',
+  ].join(' · ');
+
   return (
     <>
       <main className="main-container">
         <div className="code-editor">
+          {source === 'oj' && (
+            <div className="oj-mode-summary">
+              <span className="oj-mode-summary__tag">OJ</span>
+              <span className="oj-mode-summary__text">{ojSelectionLabel}</span>
+            </div>
+          )}
           <ProblemInput
             source={source}
             problem={problem}
             expectedInput={expectedInput}
             expectedOutput={expectedOutput}
             problemUrl={problemUrl}
+            ojSubject={ojSubject}
+            ojChapter={ojChapter}
+            ojProblemNumber={ojProblemNumber}
             locked={hints.length > 0}
             onProblemChange={setProblem}
             onExpectedInputChange={setExpectedInput}
             onExpectedOutputChange={setExpectedOutput}
             onProblemUrlChange={setProblemUrl}
+            onOjSubjectChange={setOjSubject}
+            onOjChapterChange={setOjChapter}
+            onOjProblemNumberChange={setOjProblemNumber}
           />
           <CodeEditor
             code={code}

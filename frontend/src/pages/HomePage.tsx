@@ -114,6 +114,7 @@ function RecentHintsCard({ onGoTo, onUnauthorized }: { onGoTo: (m: ViewMode) => 
 const SHORTCUTS: { icon: string; label: string; mode: ViewMode | null; source?: Source }[] = [
   { icon: '📝', label: '직접 입력', mode: 'editor', source: 'direct' },
   { icon: '🔗', label: '문제 불러오기', mode: 'editor', source: 'url' },
+  { icon: 'OJ', label: 'OJ', mode: 'editor', source: 'oj' },
   { icon: '📜', label: '히스토리', mode: 'history' },
   { icon: '🎯', label: '퀴즈',     mode: 'quiz' },
 ];
