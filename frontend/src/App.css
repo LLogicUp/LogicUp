@@ -200,6 +200,18 @@ body {
   text-align: left;
 }
 
+.oj-status {
+  margin: 0 0 10px;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.oj-status--error {
+  color: var(--accent-red);
+}
+
 .oj-current-target__label {
   flex-shrink: 0;
   color: var(--text-secondary);

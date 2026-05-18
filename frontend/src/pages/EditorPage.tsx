@@ -6,6 +6,7 @@ import CodeEditor, { type CodeLanguage } from '../components/CodeEditor';
 import HintPanel, { type Hint } from '../components/HintPanel';
 import { postHint } from '../api/hint';
 import type { HintApiResponse } from '../api/hint';
+import { fetchOjIndex, fetchOjProblem, type OjProblemDetail, type OjSubjectSummary } from '../api/oj';
 
 type Source = 'direct' | 'url' | 'oj';
 
@@ -28,6 +29,9 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
   const [ojSubject, setOjSubject] = useState<OjSubject>('c_program');
   const [ojChapter, setOjChapter] = useState('');
   const [ojProblemNumber, setOjProblemNumber] = useState('');
+  const [ojSubjects, setOjSubjects] = useState<OjSubjectSummary[]>([]);
+  const [ojLoading, setOjLoading] = useState(false);
+  const [ojError, setOjError] = useState('');
   const [code, setCode] = useState('');
   const [language, setLanguage] = useState<CodeLanguage>('c');
   const [hints, setHints] = useState<Hint[]>([]);
@@ -50,25 +54,98 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
     setSubmissionId(null);
   }, [problem, problemUrl, ojSubject, ojChapter, ojProblemNumber, code, language, source]);
 
-  const buildOjProblemText = () => {
+  useEffect(() => {
+    if (source !== 'oj') return;
+
+    let cancelled = false;
+    setOjLoading(true);
+    setOjError('');
+    fetchOjIndex()
+      .then((subjects) => {
+        if (cancelled) return;
+        setOjSubjects(subjects);
+        if (subjects.length > 0 && !subjects.some((subject) => subject.key === ojSubject)) {
+          setOjSubject(subjects[0].key);
+          setOjChapter('');
+          setOjProblemNumber('');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setOjError('OJ 목록을 불러오지 못했습니다.');
+      })
+      .finally(() => {
+        if (!cancelled) setOjLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [source, ojSubject]);
+
+  const selectedOjSubject = ojSubjects.find((subject) => subject.key === ojSubject);
+  const ojChapterOptions = selectedOjSubject?.chapters ?? [];
+  const selectedOjChapter = ojChapterOptions.find((chapter) => String(chapter.chapter) === ojChapter);
+  const ojProblemOptions = selectedOjChapter?.problems ?? [];
+  const selectedOjProblem = ojProblemOptions.find((problem) => String(problem.number) === ojProblemNumber);
+
+  const handleOjSubjectChange = (value: OjSubject) => {
+    setOjSubject(value);
+    setOjChapter('');
+    setOjProblemNumber('');
+  };
+
+  const handleOjChapterChange = (value: string) => {
+    setOjChapter(value);
+    setOjProblemNumber('');
+  };
+
+  const buildOjProblemText = (detail?: OjProblemDetail) => {
     return [
       'OJ 문제 조회 정보',
-      `과목: ${OJ_SUBJECT_LABELS[ojSubject]} (${ojSubject})`,
+      `과목: ${selectedOjSubject?.label ?? OJ_SUBJECT_LABELS[ojSubject] ?? ojSubject} (${ojSubject})`,
       `장: ${ojChapter || '미입력'}`,
       `문제 번호: ${ojProblemNumber || '미입력'}`,
+      `문제 제목: ${detail?.title || selectedOjProblem?.title || '미입력'}`,
+      '',
+      '문제 설명:',
+      detail?.description || '',
     ].join('\n');
+  };
+
+  const buildOjExpectedInput = (detail: OjProblemDetail) => {
+    return detail.examples.map((example, index) => (
+      detail.examples.length > 1
+        ? `예시 ${index + 1}\n${example.input}`
+        : example.input
+    )).join('\n\n');
+  };
+
+  const buildOjExpectedOutput = (detail: OjProblemDetail) => {
+    return detail.examples.map((example, index) => (
+      detail.examples.length > 1
+        ? `예시 ${index + 1}\n${example.output}`
+        : example.output
+    )).join('\n\n');
   };
 
   const requestHint = async () => {
     if (!code.trim()) return;
     setLoading(true);
     try {
+      const ojProblem = source === 'oj' && ojSubject && ojChapter && ojProblemNumber
+        ? await fetchOjProblem(ojSubject, ojChapter, ojProblemNumber)
+        : undefined;
+
       const data: HintApiResponse = await postHint({
         submission_id: submissionId,
         ...(source === 'url'
           ? { problem_url: problemUrl }
           : source === 'oj'
-            ? { problem: buildOjProblemText(), expected_input: '', expected_output: '' }
+            ? {
+                problem: buildOjProblemText(ojProblem),
+                expected_input: ojProblem ? buildOjExpectedInput(ojProblem) : '',
+                expected_output: ojProblem ? buildOjExpectedOutput(ojProblem) : '',
+              }
             : { problem, expected_input: expectedInput, expected_output: expectedOutput }),
         code,
         language,
@@ -125,9 +202,11 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
   };
 
   const ojSelectionLabel = [
-    OJ_SUBJECT_LABELS[ojSubject],
+    selectedOjSubject?.label ?? OJ_SUBJECT_LABELS[ojSubject] ?? ojSubject,
     ojChapter ? `${ojChapter}장` : '장 미선택',
-    ojProblemNumber ? `${ojProblemNumber}번` : '문제 미선택',
+    selectedOjProblem
+      ? `${selectedOjProblem.number}번 ${selectedOjProblem.title}`
+      : ojProblemNumber ? `${ojProblemNumber}번` : '문제 미선택',
   ].join(' · ');
 
   return (
@@ -149,13 +228,18 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
             ojSubject={ojSubject}
             ojChapter={ojChapter}
             ojProblemNumber={ojProblemNumber}
+            ojSubjectOptions={ojSubjects}
+            ojChapterOptions={ojChapterOptions}
+            ojProblemOptions={ojProblemOptions}
+            ojLoading={ojLoading}
+            ojError={ojError}
             locked={hints.length > 0}
             onProblemChange={setProblem}
             onExpectedInputChange={setExpectedInput}
             onExpectedOutputChange={setExpectedOutput}
             onProblemUrlChange={setProblemUrl}
-            onOjSubjectChange={setOjSubject}
-            onOjChapterChange={setOjChapter}
+            onOjSubjectChange={handleOjSubjectChange}
+            onOjChapterChange={handleOjChapterChange}
             onOjProblemNumberChange={setOjProblemNumber}
           />
           <CodeEditor

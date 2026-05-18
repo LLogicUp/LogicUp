@@ -1,7 +1,8 @@
 import Card from './ui/Card';
 import type { Source } from './Header';
+import type { OjChapterSummary, OjProblemSummary, OjSubjectSummary } from '../api/oj';
 
-export type OjSubject = 'c_program' | 'advanced_c' | 'data_structure' | 'algo';
+export type OjSubject = string;
 
 export const OJ_SUBJECT_LABELS: Record<OjSubject, string> = {
   c_program: 'C 프로그래밍',
@@ -19,6 +20,11 @@ interface ProblemInputProps {
   ojSubject: OjSubject;
   ojChapter: string;
   ojProblemNumber: string;
+  ojSubjectOptions: OjSubjectSummary[];
+  ojChapterOptions: OjChapterSummary[];
+  ojProblemOptions: OjProblemSummary[];
+  ojLoading?: boolean;
+  ojError?: string;
   locked?: boolean;
   onProblemChange: (value: string) => void;
   onExpectedInputChange: (value: string) => void;
@@ -38,6 +44,11 @@ function ProblemInput({
   ojSubject,
   ojChapter,
   ojProblemNumber,
+  ojSubjectOptions,
+  ojChapterOptions,
+  ojProblemOptions,
+  ojLoading = false,
+  ojError = '',
   locked = false,
   onProblemChange,
   onExpectedInputChange,
@@ -112,43 +123,57 @@ function ProblemInput({
             className="oj-select"
             value={ojSubject}
             onChange={(e) => onOjSubjectChange(e.target.value as OjSubject)}
-            disabled={locked}
+            disabled={locked || ojLoading || ojSubjectOptions.length === 0}
           >
-            {Object.entries(OJ_SUBJECT_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
+            {ojSubjectOptions.map((subject) => (
+              <option key={subject.key} value={subject.key}>{subject.label}</option>
             ))}
           </select>
         </div>
         <div className="input-field">
           <label>장</label>
-          <input
-            type="number"
-            min="1"
-            className="oj-number-input"
+          <select
+            className="oj-select"
             value={ojChapter}
             onChange={(e) => onOjChapterChange(e.target.value)}
-            placeholder="예: 3"
-            disabled={locked}
-          />
+            disabled={locked || ojLoading || ojChapterOptions.length === 0}
+          >
+            <option value="">장 선택</option>
+            {ojChapterOptions.map((chapter) => (
+              <option key={chapter.chapter} value={String(chapter.chapter)}>
+                {chapter.chapter}장
+              </option>
+            ))}
+          </select>
         </div>
         <div className="input-field">
           <label>문제 번호</label>
-          <input
-            type="number"
-            min="1"
-            className="oj-number-input"
+          <select
+            className="oj-select"
             value={ojProblemNumber}
             onChange={(e) => onOjProblemNumberChange(e.target.value)}
-            placeholder="예: 5"
-            disabled={locked}
-          />
+            disabled={locked || ojLoading || ojProblemOptions.length === 0}
+          >
+            <option value="">문제 선택</option>
+            {ojProblemOptions.map((problem) => (
+              <option key={problem.number} value={String(problem.number)}>
+                {problem.number}번{problem.title ? ` - ${problem.title}` : ''}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
+
+      {ojError && <p className="oj-status oj-status--error">{ojError}</p>}
+      {ojLoading && <p className="oj-status">OJ 목록을 불러오는 중입니다.</p>}
+      {!ojLoading && !ojError && ojSubjectOptions.length === 0 && (
+        <p className="oj-status">등록된 OJ 과목이 없습니다.</p>
+      )}
 
       <div className="oj-current-target" aria-live="polite">
         <span className="oj-current-target__label">현재 선택</span>
         <span className="oj-current-target__value">
-          {OJ_SUBJECT_LABELS[ojSubject]}
+          {ojSubjectOptions.find((subject) => subject.key === ojSubject)?.label ?? OJ_SUBJECT_LABELS[ojSubject] ?? ojSubject}
           {ojChapter ? ` ${ojChapter}장` : ' 장 미선택'}
           {ojProblemNumber ? ` ${ojProblemNumber}번` : ' 문제 미선택'}
         </span>
