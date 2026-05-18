@@ -169,7 +169,7 @@ function AuthPanel({ onLogin, initialError = '' }: AuthPanelProps) {
             onClick={handleSejongModeOpen}
             disabled={loading}
           >
-            세종대 포털
+            세종대 로그인
           </button>
         </div>
       </div>
