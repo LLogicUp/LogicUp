@@ -860,6 +860,60 @@ body {
   cursor: not-allowed;
 }
 
+.social-login-row {
+  display: flex;
+  gap: 8px;
+}
+
+.social-login-row .kakao-login-btn {
+  flex: 1;
+}
+
+.sejong-login-btn {
+  flex: 1;
+  padding: 10px;
+  background-color: #003c8b;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.sejong-login-btn:hover:not(:disabled) {
+  background-color: #002d6b;
+}
+
+.sejong-login-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sejong-form-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-primary, #333);
+}
+
+.sejong-back-btn {
+  background: transparent;
+  border: none;
+  color: var(--burgundy-primary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+}
+
+.sejong-back-btn:hover {
+  text-decoration: underline;
+}
+
 /* ─── 퀴즈 공통 ─── */
 .quiz-page {
   max-width: 720px;
