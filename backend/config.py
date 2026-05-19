@@ -18,3 +18,5 @@ logger.addHandler(console_handler)
 
 # Groq 클라이언트
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+LLM_MODEL = "openai/gpt-oss-120b"

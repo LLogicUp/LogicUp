@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from config import groq_client, logger
+from config import groq_client, logger, LLM_MODEL
 from database import get_db
 from db_models import Submission, HintCategory, QuizSet, QuizQuestion
 from auth import get_current_user
@@ -59,7 +59,7 @@ def generate_quiz(
 
     try:
         res = groq_client.chat.completions.create(
-            model="openai/gpt-oss-120b",
+            model=LLM_MODEL,
             response_format={"type": "json_object"},
             messages=[{"role": "user", "content": prompt}],
         )
@@ -152,8 +152,8 @@ def get_quiz_sets(
         for q in s.questions:
             try:
                 cats.extend(json.loads(q.categories))
-            except Exception:
-                pass
+            except json.JSONDecodeError:
+                logger.warning(f"카테고리 JSON 파싱 실패 | question_id={q.id}")
         cats = list(dict.fromkeys(cats))
 
         if category and category not in cats:
@@ -245,7 +245,7 @@ def submit_quiz(
             )
             try:
                 res = groq_client.chat.completions.create(
-                    model="openai/gpt-oss-120b",
+                    model=LLM_MODEL,
                     response_format={"type": "json_object"},
                     messages=[{"role": "user", "content": prompt}],
                 )

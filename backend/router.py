@@ -6,7 +6,7 @@ from sqlalchemy import func, distinct
 from sqlalchemy.orm import Session
 from models import HintRequest
 from programmers import fetch_problem_from_url
-from config import groq_client, logger
+from config import groq_client, logger, LLM_MODEL
 from prompts import SYSTEM_PROMPT, build_prompt
 from database import get_db
 from db_models import Submission, Hint, HintCategory
@@ -14,6 +14,10 @@ from schemas import HintResponse, HistoryItem, HistoryResponse, ProblemSummary, 
 from auth import get_current_user
 
 router = APIRouter()
+
+
+def _unique_categories(raw: list | None) -> list[str]:
+    return list({c for c in (raw or []) if c is not None})
 
 
 @router.get("/health")
@@ -90,7 +94,7 @@ def get_hint(
     logger.info(f"LLM 요청 시작 | model=openai/gpt-oss-120b | prompt_length={len(prompt)}")
 
     response = groq_client.chat.completions.create(
-        model="openai/gpt-oss-120b",
+        model=LLM_MODEL,
         response_format={"type": "json_object"},
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
@@ -248,7 +252,7 @@ def get_problem_list(
             language=row.language or "c",
             hint_count=row.hint_count,
             last_hint_at=row.last_hint_at,
-            categories=list({c for c in (row.raw_categories or []) if c is not None}),
+            categories=_unique_categories(row.raw_categories),
         )
         for row in rows
     ])
@@ -289,7 +293,7 @@ def get_direct_problem_list(
             language=row.language or "c",
             hint_count=row.hint_count,
             last_hint_at=row.last_hint_at,
-            categories=list({c for c in (row.raw_categories or []) if c is not None}),
+            categories=_unique_categories(row.raw_categories),
         )
         for row in rows
     ])

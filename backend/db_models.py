@@ -1,19 +1,18 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
+from sqlalchemy import Integer, String, Text, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql import func
 from database import Base
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    userid = Column(String(20), unique=True, nullable=True, index=True)
-    password_hash = Column(String(255), nullable=True)
-    kakao_id = Column(String(50), unique=True, nullable=True, index=True)
-    nickname = Column(String(50), nullable=True)
-    created_at = Column(DateTime, server_default=func.now())
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    userid: Mapped[str | None] = mapped_column(String(20), unique=True, nullable=True, index=True)
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    kakao_id: Mapped[str | None] = mapped_column(String(50), unique=True, nullable=True, index=True)
+    nickname: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     submissions: Mapped[list["Submission"]] = relationship(
         "Submission", back_populates="user", cascade="all, delete-orphan"

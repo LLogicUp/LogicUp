@@ -3,7 +3,7 @@ import json
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
-from config import groq_client, logger
+from config import groq_client, logger, LLM_MODEL
 
 
 def _is_safe_url(url: str) -> bool:
@@ -58,7 +58,7 @@ def fetch_problem_from_url(url: str) -> dict:
 
     try:
         res = groq_client.chat.completions.create(
-            model="openai/gpt-oss-120b",
+            model=LLM_MODEL,
             response_format={"type": "json_object"},
             messages=[{"role": "user", "content": prompt}],
         )
