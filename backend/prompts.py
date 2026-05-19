@@ -149,6 +149,8 @@ SYSTEM_PROMPT = (
 
 
 def build_prompt(problem: str, expected_input: str, expected_output: str, code: str, error_log: str, hint_level: int, language: str = "c") -> str:
+    if hint_level not in LEVEL_INSTRUCTIONS:
+        raise ValueError(f"유효하지 않은 힌트 레벨: {hint_level}")
     return (
         f"[문제]\n{problem}\n\n"
         f"[정답 예시 입력]\n{expected_input}\n\n"

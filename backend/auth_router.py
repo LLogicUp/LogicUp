@@ -10,9 +10,11 @@ from db_models import User
 from auth import hash_password, verify_password, create_token
 from dotenv import load_dotenv
 import ssl
-import requests.sessions
+import threading
 from requests.adapters import HTTPAdapter
-from sejong_univ_auth import auth
+from sejong_univ_auth import auth, DosejongSession
+
+_sejong_lock = threading.Lock()
 
 
 class LegacySSLAdapter(HTTPAdapter):
@@ -28,17 +30,18 @@ class LegacySSLAdapter(HTTPAdapter):
 
 
 def _sejong_auth(student_id: str, password: str):
-    orig = requests.sessions.Session.__init__
+    with _sejong_lock:
+        orig = requests.sessions.Session.__init__
 
-    def patched(self, *args, **kwargs):
-        orig(self, *args, **kwargs)
-        self.mount('https://', LegacySSLAdapter())
+        def patched(self, *args, **kwargs):
+            orig(self, *args, **kwargs)
+            self.mount('https://', LegacySSLAdapter())
 
-    requests.sessions.Session.__init__ = patched
-    try:
-        return auth(id=student_id, password=password)
-    finally:
-        requests.sessions.Session.__init__ = orig
+        requests.sessions.Session.__init__ = patched
+        try:
+            return auth(id=student_id, password=password, methods=DosejongSession)
+        finally:
+            requests.sessions.Session.__init__ = orig
 
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
@@ -65,15 +68,16 @@ class RegisterRequest(BaseModel):
     @field_validator("password")
     @classmethod
     def password_complexity(cls, v):
+        SPECIAL = r"!@#$%^&*()_+\-=\[\]{}|;:\'\",./<>?~`"
         if not (8 <= len(v) <= 16):
             raise ValueError("비밀번호는 8~16자로 입력해주세요.")
-        if not re.match(r"^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{}|;:\'\",./<>?~`]+$", v):
+        if not re.match(rf"^[a-zA-Z0-9{SPECIAL}]+$", v):
             raise ValueError("비밀번호는 영어, 숫자, 특수문자만 사용할 수 있습니다.")
         if not re.search(r"[a-zA-Z]", v):
             raise ValueError("비밀번호에 영어가 최소 1자 포함되어야 합니다.")
         if not re.search(r"[0-9]", v):
             raise ValueError("비밀번호에 숫자가 최소 1자 포함되어야 합니다.")
-        if not re.search(r"[!@#$%^&*()_+\-=\[\]{}|;:\'\",./<>?~`]", v):
+        if not re.search(rf"[{SPECIAL}]", v):
             raise ValueError("비밀번호에 특수문자가 최소 1자 포함되어야 합니다.")
         return v
     
@@ -152,11 +156,12 @@ def kakao_login(request: KakaoLoginRequest, db: Session = Depends(get_db)):
     logger.info(f"카카오 토큰 요청 | client_id={KAKAO_REST_API_KEY} | redirect_uri={KAKAO_REDIRECT_URI} | code_len={len(request.code)}")
     token_res = requests.post("https://kauth.kakao.com/oauth/token", data=token_data)
 
+    token_res_json = token_res.json()
     if token_res.status_code != 200:
         logger.warning(f"카카오 토큰 요청 실패 | status={token_res.status_code} | body={token_res.text}")
-        raise HTTPException(status_code=401, detail=f"카카오 인증에 실패했습니다: {token_res.json().get('error_code', '')} {token_res.json().get('error_description', '')}")
+        raise HTTPException(status_code=401, detail=f"카카오 인증에 실패했습니다: {token_res_json.get('error_code', '')} {token_res_json.get('error_description', '')}")
 
-    kakao_token = token_res.json().get("access_token")
+    kakao_token = token_res_json.get("access_token")
 
     # 2. 액세스 토큰으로 카카오 사용자 정보 요청
     user_res = requests.get("https://kapi.kakao.com/v2/user/me", headers={
@@ -239,6 +244,9 @@ def sejong_login(request: SejongLoginRequest, db: Session = Depends(get_db)):
             logger.exception(f"세종대 자동 회원가입 저장 오류 | student_id={request.student_id}")
             raise HTTPException(status_code=503, detail="세종대 로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
         logger.info(f"세종대 자동 회원가입 | student_id={request.student_id} | user_id={user.id}")
+    elif user.nickname != nickname:
+        user.nickname = nickname
+        db.commit()
 
     token = create_token({"user_id": user.id, "nickname": user.nickname})
 
