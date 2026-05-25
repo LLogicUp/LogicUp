@@ -38,6 +38,7 @@ export interface SubmissionSummary {
   submission_id: number;
   source: string;
   external_problem_id: string | null;
+  title: string;
   problem_snippet: string;
   hint_count: number;
   last_hint_at: string;

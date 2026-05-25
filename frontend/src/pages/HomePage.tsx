@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Card from '../components/ui/Card';
-import { fetchHistory, fetchSubmissionList, fetchCategoryStats, UnauthorizedError, type HistoryItem, type CategoryStat } from '../api/history';
+import { fetchSubmissionList, fetchCategoryStats, UnauthorizedError, type SubmissionSummary, type CategoryStat } from '../api/history';
 import type { ViewMode, Source } from '../components/Header';
 import './HomePage.css';
 
@@ -68,13 +68,13 @@ function RecentHintsCard({
   onGoTo: (m: ViewMode) => void;
   onUnauthorized: () => void;
 }) {
-  const [items, setItems] = useState<HistoryItem[]>([]);
+  const [items, setItems] = useState<SubmissionSummary[]>([]);
   const [filter, setFilter] = useState<'all' | 'url' | 'direct' | 'oj'>('all');
 
   useEffect(() => {
     const controller = new AbortController();
-    fetchHistory({ page: 1, limit: 5, ...(filter !== 'all' ? { source: filter } : {}) })
-      .then((res) => { if (!controller.signal.aborted) setItems(res.items); })
+    fetchSubmissionList(filter !== 'all' ? filter : undefined)
+      .then((res) => { if (!controller.signal.aborted) setItems(res.items.slice(0, 5)); })
       .catch((err) => { if (!controller.signal.aborted && err instanceof UnauthorizedError) onUnauthorized(); });
     return () => controller.abort();
   }, [filter, onUnauthorized]);
@@ -105,14 +105,14 @@ function RecentHintsCard({
           <p className="hp-empty">이력이 없습니다.</p>
         )}
         {items.map((item) => (
-          <div key={item.hint_id} className="hp-hint-row">
+          <div key={item.submission_id} className="hp-hint-row">
             <div className="hp-hint-title">
               <span className={`hp-tag hp-tag--${item.source === 'url' ? 'boj' : item.source}`}>
                 {item.source === 'url' ? '불러옴' : item.source === 'oj' ? 'OJ' : '직접'}
               </span>
-              {(item.title?.trim() || item.problem.slice(0, 30)) || '(제목 없음)'}
+              {(item.title?.trim() || item.problem_snippet) || '(제목 없음)'}
             </div>
-            <div className="hp-hint-date">{item.created_at.slice(0, 10)}</div>
+            <div className="hp-hint-date">{item.last_hint_at.slice(0, 10)}</div>
           </div>
         ))}
       </div>
