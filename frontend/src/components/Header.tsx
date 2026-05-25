@@ -6,6 +6,7 @@ export type ViewMode = 'home' | 'editor' | 'history' | 'quiz';
 
 interface HeaderProps {
   userid: string;
+  isSejongVerified: boolean;
   onLogout: () => void;
 }
 
@@ -28,9 +29,10 @@ function isActive(tabPath: string, pathname: string): boolean {
   return pathname.startsWith(tabPath);
 }
 
-function Header({ userid, onLogout }: HeaderProps) {
+function Header({ userid, isSejongVerified, onLogout }: HeaderProps) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const visibleTabs = TABS.filter((tab) => tab.path !== '/editor/oj' || isSejongVerified);
 
   return (
     <header className="lu-header">
@@ -49,7 +51,7 @@ function Header({ userid, onLogout }: HeaderProps) {
       </div>
 
       <nav className="lu-header__tabs" role="tablist">
-        {TABS.map((tab) => {
+        {visibleTabs.map((tab) => {
           const active = isActive(tab.path, pathname);
           return (
             <button

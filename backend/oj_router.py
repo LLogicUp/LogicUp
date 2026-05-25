@@ -2,10 +2,16 @@ import json
 import re
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+
+from auth import require_sejong_token
 
 
-oj_router = APIRouter(prefix="/oj", tags=["oj"])
+oj_router = APIRouter(
+    prefix="/oj",
+    tags=["oj"],
+    dependencies=[Depends(require_sejong_token)],
+)
 
 OJ_ROOT = Path(__file__).resolve().parent.parent / "oj"
 SUBJECT_LABELS = {

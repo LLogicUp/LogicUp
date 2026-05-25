@@ -5,24 +5,14 @@ import UserBar from './components/UserBar';
 import HistoryPage from './components/HistoryPage';
 import QuizPage from './components/quiz/QuizPage';
 import AuthPanel from './components/AuthPanel';
-import { getToken, clearToken, kakaoLogin } from './api/auth';
+import { getToken, clearToken, kakaoLogin, getTokenPayload, isSejongVerifiedToken } from './api/auth';
 import HomePage from './pages/HomePage';
 import EditorPage from './pages/EditorPage';
 import type { Source } from './components/Header';
 import './App.css';
 
 function getUserid(): string {
-  const token = getToken();
-  if (!token) return '';
-  try {
-    const base64url = token.split('.')[1];
-    const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
-    const payload = JSON.parse(atob(padded));
-    return payload.nickname ?? '';
-  } catch {
-    return '';
-  }
+  return getTokenPayload()?.nickname ?? '';
 }
 
 function App() {
@@ -39,6 +29,7 @@ function App() {
 
   const [token, setToken] = useState<string | null>(() => getToken());
   const [userid, setUserid] = useState<string>(() => getUserid());
+  const [isSejongVerified, setIsSejongVerified] = useState<boolean>(() => isSejongVerifiedToken());
   const [kakaoError, setKakaoError] = useState('');
 
   const navigate = useNavigate();
@@ -53,6 +44,7 @@ function App() {
         .then(() => {
           setToken(getToken());
           setUserid(getUserid());
+          setIsSejongVerified(isSejongVerifiedToken());
         })
         .catch((err: Error) => {
           setKakaoError(err.message || '카카오 로그인에 실패했습니다.');
@@ -63,12 +55,14 @@ function App() {
   const handleLogin = useCallback(() => {
     setToken(getToken());
     setUserid(getUserid());
+    setIsSejongVerified(isSejongVerifiedToken());
   }, []);
 
   const handleLogout = useCallback(() => {
     clearToken();
     setToken(null);
     setUserid('');
+    setIsSejongVerified(false);
     navigate('/', { replace: true });
   }, [navigate]);
 
@@ -76,6 +70,7 @@ function App() {
     clearToken();
     setToken(null);
     setUserid('');
+    setIsSejongVerified(false);
     navigate('/', { replace: true });
   }, [navigate]);
 
@@ -85,7 +80,7 @@ function App() {
 
   return (
     <div className={`App${isDark ? ' dark' : ''}`}>
-      <Header userid={userid} onLogout={handleLogout} />
+      <Header userid={userid} isSejongVerified={isSejongVerified} onLogout={handleLogout} />
       <UserBar userid={userid} onUnauthorized={handleLogout} />
       <Routes>
         <Route
@@ -95,12 +90,19 @@ function App() {
               onGoTo={(mode) => navigate(`/${mode === 'home' ? '' : mode}`)}
               onGoToEditor={(src: Source) => navigate(`/editor/${src}`)}
               onUnauthorized={handleLogout}
+              isSejongVerified={isSejongVerified}
             />
           }
         />
         <Route
           path="/editor/:source"
-          element={<EditorPage isDark={isDark} onLogout={handleLogout} />}
+          element={
+            <EditorPage
+              isDark={isDark}
+              isSejongVerified={isSejongVerified}
+              onLogout={handleLogout}
+            />
+          }
         />
         <Route
           path="/history"
@@ -125,6 +127,7 @@ function App() {
               onGoTo={(mode) => navigate(`/${mode === 'home' ? '' : mode}`)}
               onGoToEditor={(src: Source) => navigate(`/editor/${src}`)}
               onUnauthorized={handleLogout}
+              isSejongVerified={isSejongVerified}
             />
           }
         />

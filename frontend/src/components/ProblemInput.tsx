@@ -97,6 +97,24 @@ function ProblemInput({
     );
   }
 
+  if (source === 'url') {
+    return (
+      <Card title="문제 불러오기">
+        <div className="input-field">
+          <label>문제 URL</label>
+          <input
+            className="problem-url-input"
+            type="url"
+            value={problemUrl}
+            onChange={(e) => onProblemUrlChange(e.target.value)}
+            placeholder="https://www.acmicpc.net/problem/1000"
+            disabled={locked}
+          />
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card title="OJ 문제 선택">
       <div className="oj-input-grid">

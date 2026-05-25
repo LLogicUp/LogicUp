@@ -248,7 +248,11 @@ def sejong_login(request: SejongLoginRequest, db: Session = Depends(get_db)):
         user.nickname = nickname
         db.commit()
 
-    token = create_token({"user_id": user.id, "nickname": user.nickname})
+    token = create_token({
+        "user_id": user.id,
+        "nickname": user.nickname,
+        "is_sejong_verified": True,
+    })
 
     logger.info(f"세종대 로그인 성공 | student_id={request.student_id} | user_id={user.id}")
     return {"access_token": token}
