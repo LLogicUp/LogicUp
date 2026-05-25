@@ -1,0 +1,30 @@
+힌트 정확도 평가 리포트 (20260525_211637)
+============================================================
+
+[ERROR] py_index_error L1: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01kh6cpnsef2rr0s1g1tt3nmgp` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5759, Requested 2855. Please try again in 4.605s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+[ERROR] py_scope_error L2: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01kh6cpnsef2rr0s1g1tt3nmgp` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5733, Requested 2809. Please try again in 4.065s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+■ 카테고리 분류 정확도
+  평균 Precision : 0.562
+  평균 Recall    : 0.625
+  평균 F1        : 0.583
+
+■ LLM Judge 품질 점수 (1~5)
+  평균 점수: 3.82
+  최소: 1  최대: 5
+
+■ 형식 오류 / 허용목록 외 카테고리
+  algo_binary_search L1 허용목록 외 카테고리: ['오프바이원']
+
+■ 레벨 규칙 위반 (LLM Judge 판정)
+  c_printf_format L1: 힌트에 오류 부분 코드(`printf(a + b);`)를 제시했으며, 규칙은 줄 번호와 오류 타입만 알려주라고 명시했음
+  c_printf_format L3: 설명에 실제 C 코드인 printf("%d", result) 구문이 포함되어 레벨 3 규칙인 pseudocode만 제공해야 함을 위반함
+  c_null_pointer L2: Includes solution code (malloc example) violating rule
+  c_memory_leak L1: 필요한 오류 위치와 타입을 제시하지 않음
+  c_string_no_null L1: 힌트에 코드 스니펫(오류 부분) 제시
+  c_infinite_loop L1: 설명에 오류 원인 및 상세 내용을 포함해 허용된 오류 위치와 타입만 제공해야 함을 위반함
+  c_infinite_loop L2: 정답 코드가 포함된 예시(i++ while 루프)
+  py_index_error L2: 힌트에 `nums[0] + nums[1]`이라는 정확한 인덱스 조합을 제시해 정답을 노출함
+  py_scope_error L1: 힌트에 오류가 발생한 코드 스니펫(`count += 1`)을 포함하여 레벨 1 규칙(오류 위치와 타입만) 위반
+
+
+원시 결과: E:\LogicUp\backend\eval\results_20260525_211637.json

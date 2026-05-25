@@ -6,16 +6,17 @@ import CodeEditor, { type CodeLanguage } from '../components/CodeEditor';
 import HintPanel, { type Hint } from '../components/HintPanel';
 import { postHint } from '../api/hint';
 import type { HintApiResponse } from '../api/hint';
-import { fetchOjIndex, fetchOjProblem, type OjProblemDetail, type OjSubjectSummary } from '../api/oj';
+import { fetchOjIndex, fetchOjProblem, SejongRequiredError, type OjProblemDetail, type OjSubjectSummary } from '../api/oj';
 
 type Source = 'direct' | 'url' | 'oj';
 
 interface EditorPageProps {
   isDark: boolean;
+  isSejongVerified: boolean;
   onLogout: () => void;
 }
 
-export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
+export default function EditorPage({ isDark, isSejongVerified, onLogout }: EditorPageProps) {
   const { source: sourceParam } = useParams<{ source: string }>();
   const source: Source =
     sourceParam === 'url' ? 'url'
@@ -54,7 +55,7 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
   }, [problem, problemUrl, ojSubject, ojChapter, ojProblemNumber, code, language, source]);
 
   useEffect(() => {
-    if (source !== 'oj') return;
+    if (source !== 'oj' || !isSejongVerified) return;
 
     let cancelled = false;
     setOjLoading(true);
@@ -69,8 +70,17 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
           setOjProblemNumber('');
         }
       })
-      .catch(() => {
-        if (!cancelled) setOjError('OJ 목록을 불러오지 못했습니다.');
+      .catch((err) => {
+        if (cancelled) return;
+        if (err instanceof Error && err.message === 'Unauthorized') {
+          onLogout();
+          return;
+        }
+        if (err instanceof SejongRequiredError) {
+          setOjError('세종대 로그인 후 사용할 수 있습니다.');
+          return;
+        }
+        setOjError('OJ 목록을 불러오지 못했습니다.');
       })
       .finally(() => {
         if (!cancelled) setOjLoading(false);
@@ -79,7 +89,7 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
     return () => {
       cancelled = true;
     };
-  }, [source, ojSubject]);
+  }, [source, ojSubject, isSejongVerified, onLogout]);
 
   const selectedOjSubject = ojSubjects.find((subject) => subject.key === ojSubject);
   const ojChapterOptions = selectedOjSubject?.chapters ?? [];
@@ -129,6 +139,7 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
 
   const requestHint = async () => {
     if (!code.trim()) return;
+    if (source === 'oj' && !isSejongVerified) return;
     if (source === 'oj' && (!ojSubject || !ojChapter || !ojProblemNumber)) return;
     setLoading(true);
     try {
@@ -138,6 +149,7 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
 
       const data: HintApiResponse = await postHint({
         submission_id: submissionId,
+        source,
         ...(source === 'url'
           ? { problem_url: problemUrl }
           : source === 'oj'
@@ -165,6 +177,20 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
     } catch (err) {
       if (err instanceof Error && err.message === 'Unauthorized') {
         onLogout();
+        return;
+      }
+      if (
+        err instanceof SejongRequiredError ||
+        (err instanceof Error && err.message === 'SejongRequired')
+      ) {
+        setHints((prev) => [
+          ...prev,
+          {
+            level: hintLevel,
+            explanation: 'OJ 힌트는 세종대 로그인 후 사용할 수 있습니다.',
+            pseudocode: '',
+          },
+        ]);
         return;
       }
       setHints((prev) => [
@@ -205,6 +231,7 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
     loading ||
     hintLevel > 3 ||
     !code.trim() ||
+    (source === 'oj' && !isSejongVerified) ||
     (source === 'oj' && (!ojSubject || !ojChapter || !ojProblemNumber));
 
   const ojSelectionLabel = [
@@ -219,6 +246,13 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
     <>
       <main className="main-container">
         <div className="code-editor">
+          {source === 'oj' && !isSejongVerified ? (
+            <div className="oj-mode-summary">
+              <span className="oj-mode-summary__tag">OJ</span>
+              <span className="oj-mode-summary__text">세종대 로그인 후 사용할 수 있습니다.</span>
+            </div>
+          ) : (
+            <>
           {source === 'oj' && (
             <div className="oj-mode-summary">
               <span className="oj-mode-summary__tag">OJ</span>
@@ -248,6 +282,8 @@ export default function EditorPage({ isDark, onLogout }: EditorPageProps) {
             onOjChapterChange={handleOjChapterChange}
             onOjProblemNumberChange={setOjProblemNumber}
           />
+            </>
+          )}
           <CodeEditor
             code={code}
             isDark={isDark}

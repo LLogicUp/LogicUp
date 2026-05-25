@@ -1,8 +1,11 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
 class HintRequest(BaseModel):
     submission_id: int | None = None
+    source: Literal["direct", "url", "oj"] = "direct"
     problem: str = ""
     problem_url: str = ""
     language: str = "c"

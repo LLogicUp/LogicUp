@@ -17,6 +17,32 @@ export function authHeaders(): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+export interface TokenPayload {
+  user_id?: number;
+  nickname?: string;
+  is_sejong_verified?: boolean;
+  exp?: number;
+}
+
+export function getTokenPayload(): TokenPayload | null {
+  const token = getToken();
+  if (!token) return null;
+
+  try {
+    const base64url = token.split('.')[1];
+    if (!base64url) return null;
+    const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+    return JSON.parse(atob(padded));
+  } catch {
+    return null;
+  }
+}
+
+export function isSejongVerifiedToken(): boolean {
+  return getTokenPayload()?.is_sejong_verified === true;
+}
+
 function extractErrorMessage(detail: unknown, fallback: string): string {
   if (typeof detail === 'string') return detail;
   if (Array.isArray(detail) && detail.length > 0) {
@@ -79,4 +105,3 @@ export async function sejongLogin(studentId: string, password: string): Promise<
   const data = await res.json();
   setToken(data.access_token);
 }
-
