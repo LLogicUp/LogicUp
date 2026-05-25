@@ -13,7 +13,7 @@ SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = "HS256"
 TOKEN_EXPIRE_MINUTES = 60
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 def hash_password(password: str) -> str:
@@ -39,7 +39,13 @@ def create_token(data: dict) -> str:
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+def get_current_payload(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+) -> dict:
+    if credentials is None:
+        logger.warning("토큰 검증 실패 | Authorization 헤더 없음")
+        raise HTTPException(status_code=401, detail="인증이 필요합니다")
+
     token = credentials.credentials
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -48,7 +54,17 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
             logger.warning("토큰 검증 실패 | user_id 없음")
             raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다")
         logger.info(f"토큰 검증 성공 | user_id={user_id}")
-        return user_id
+        return payload
     except JWTError:
         logger.warning("토큰 검증 실패 | 만료 또는 위조된 토큰")
         raise HTTPException(status_code=401, detail="유효하지 않은 토큰입니다")
+
+
+def get_current_user(payload: dict = Depends(get_current_payload)):
+    return payload["user_id"]
+
+
+def require_sejong_token(payload: dict = Depends(get_current_payload)) -> dict:
+    if payload.get("is_sejong_verified") is not True:
+        raise HTTPException(status_code=403, detail="세종대 로그인이 필요합니다")
+    return payload

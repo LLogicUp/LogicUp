@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Card from '../components/ui/Card';
-import { fetchHistory, fetchSubmissionList, fetchCategoryStats, UnauthorizedError, type HistoryItem, type CategoryStat } from '../api/history';
+import { fetchSubmissionList, fetchCategoryStats, UnauthorizedError, type SubmissionSummary, type CategoryStat } from '../api/history';
 import type { ViewMode, Source } from '../components/Header';
 import './HomePage.css';
 
@@ -52,29 +52,40 @@ function calcStreaks(counts: Map<string, number>): { current: number; longest: n
 }
 
 interface HomePageProps {
+  isSejongVerified: boolean;
   onGoTo: (mode: ViewMode) => void;
   onGoToEditor: (source: Source) => void;
   onUnauthorized: () => void;
 }
 
 /* ── 최근 힌트 이력 카드 ── */
-function RecentHintsCard({ onGoTo, onUnauthorized }: { onGoTo: (m: ViewMode) => void; onUnauthorized: () => void }) {
-  const [items, setItems] = useState<HistoryItem[]>([]);
-  const [filter, setFilter] = useState<'all' | 'url' | 'direct'>('all');
+function RecentHintsCard({
+  isSejongVerified,
+  onGoTo,
+  onUnauthorized,
+}: {
+  isSejongVerified: boolean;
+  onGoTo: (m: ViewMode) => void;
+  onUnauthorized: () => void;
+}) {
+  const [items, setItems] = useState<SubmissionSummary[]>([]);
+  const [filter, setFilter] = useState<'all' | 'url' | 'direct' | 'oj'>('all');
 
   useEffect(() => {
     const controller = new AbortController();
-    fetchHistory({ page: 1, limit: 5, ...(filter !== 'all' ? { source: filter } : {}) })
-      .then((res) => { if (!controller.signal.aborted) setItems(res.items); })
+    fetchSubmissionList(filter !== 'all' ? filter : undefined)
+      .then((res) => { if (!controller.signal.aborted) setItems(res.items.slice(0, 5)); })
       .catch((err) => { if (!controller.signal.aborted && err instanceof UnauthorizedError) onUnauthorized(); });
     return () => controller.abort();
   }, [filter, onUnauthorized]);
 
-  const FILTERS: { key: 'all' | 'url' | 'direct'; label: string }[] = [
+  const allFilters: { key: 'all' | 'url' | 'direct' | 'oj'; label: string }[] = [
     { key: 'all', label: '전체' },
     { key: 'url', label: '문제 불러오기' },
     { key: 'direct', label: '직접 입력' },
+    { key: 'oj', label: 'OJ' },
   ];
+  const FILTERS = allFilters.filter((f) => f.key !== 'oj' || isSejongVerified);
 
   return (
     <Card title="최근 힌트 이력" onPlus={() => onGoTo('history')}>
@@ -94,14 +105,14 @@ function RecentHintsCard({ onGoTo, onUnauthorized }: { onGoTo: (m: ViewMode) => 
           <p className="hp-empty">이력이 없습니다.</p>
         )}
         {items.map((item) => (
-          <div key={item.hint_id} className="hp-hint-row">
+          <div key={item.submission_id} className="hp-hint-row">
             <div className="hp-hint-title">
-              <span className={`hp-tag hp-tag--${item.source === 'url' ? 'boj' : 'direct'}`}>
-                {item.source === 'url' ? '불러옴' : '직접'}
+              <span className={`hp-tag hp-tag--${item.source === 'url' ? 'boj' : item.source}`}>
+                {item.source === 'url' ? '불러옴' : item.source === 'oj' ? 'OJ' : '직접'}
               </span>
-              {(item.title?.trim() || item.problem.slice(0, 30)) || '(제목 없음)'}
+              {(item.title?.trim() || item.problem_snippet) || '(제목 없음)'}
             </div>
-            <div className="hp-hint-date">{item.created_at.slice(0, 10)}</div>
+            <div className="hp-hint-date">{item.last_hint_at.slice(0, 10)}</div>
           </div>
         ))}
       </div>
@@ -119,11 +130,21 @@ const SHORTCUTS: { icon: string; label: string; mode: ViewMode | null; source?: 
   { icon: '🎯', label: '퀴즈',     mode: 'quiz' },
 ];
 
-function ShortcutCard({ onGoTo, onGoToEditor }: { onGoTo: (m: ViewMode) => void; onGoToEditor: (s: Source) => void }) {
+function ShortcutCard({
+  isSejongVerified,
+  onGoTo,
+  onGoToEditor,
+}: {
+  isSejongVerified: boolean;
+  onGoTo: (m: ViewMode) => void;
+  onGoToEditor: (s: Source) => void;
+}) {
+  const shortcuts = SHORTCUTS.filter((s) => s.source !== 'oj' || isSejongVerified);
+
   return (
     <Card title="바로가기" className="hp-shortcut-card">
       <div className="hp-shortcut-grid">
-        {SHORTCUTS.map((s) => (
+        {shortcuts.map((s) => (
           <button
             key={s.label}
             className="hp-shortcut"
@@ -269,11 +290,24 @@ function ActivityCard({ onUnauthorized }: { onUnauthorized: () => void }) {
 }
 
 /* ── 홈 페이지 ── */
-export default function HomePage({ onGoTo, onGoToEditor, onUnauthorized }: HomePageProps) {
+export default function HomePage({
+  isSejongVerified,
+  onGoTo,
+  onGoToEditor,
+  onUnauthorized,
+}: HomePageProps) {
   return (
     <div className="hp-grid">
-      <RecentHintsCard onGoTo={onGoTo} onUnauthorized={onUnauthorized} />
-      <ShortcutCard onGoTo={onGoTo} onGoToEditor={onGoToEditor} />
+      <RecentHintsCard
+        isSejongVerified={isSejongVerified}
+        onGoTo={onGoTo}
+        onUnauthorized={onUnauthorized}
+      />
+      <ShortcutCard
+        isSejongVerified={isSejongVerified}
+        onGoTo={onGoTo}
+        onGoToEditor={onGoToEditor}
+      />
       <ActivityCard onUnauthorized={onUnauthorized} />
     </div>
   );

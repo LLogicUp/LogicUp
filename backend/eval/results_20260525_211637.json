@@ -1,0 +1,703 @@
+[
+  {
+    "id": "c_printf_format",
+    "language": "c",
+    "levels": {
+      "1": {
+        "hint": {
+          "explanation": "**줄 번호**: 5번째 줄\n\n**오류 부분**: `printf(a + b);`\n\n**오류 타입**: 입출력 형식 오류 (scanf/printf)",
+          "pseudocode": "",
+          "error_categories": [
+            "입출력 형식 오류 (scanf/printf)"
+          ],
+          "title": "두 정수 합 출력"
+        },
+        "category_eval": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 3,
+          "rule_violation": true,
+          "violation_reason": "힌트에 오류 부분 코드(`printf(a + b);`)를 제시했으며, 규칙은 줄 번호와 오류 타입만 알려주라고 명시했음",
+          "comment": "줄 번호와 오류 타입을 제공했지만, 불필요한 코드 노출로 규칙을 위반했습니다"
+        }
+      },
+      "2": {
+        "hint": {
+          "explanation": "### 개념명\n입출력 형식 오류 (printf)\n\n### 설명\n`printf` 함수는 **포맷 문자열**을 첫 번째 인자로 받아야 합니다. 포맷 문자열 없이 변수나 연산 결과를 직접 전달하면 **형식 문자열이 없다는 오류**가 발생하고, 프로그램이 예상치 못한 동작을 할 수 있습니다. 올바른 사용법은 `\"%d\"`와 같은 형식 지정자를 이용해 출력할 데이터의 타입을 명시하는 것입니다.\n\n### 예시\n잘못된 예: `printf(a + b);`\n올바른 예: `printf(\"%d\", a + b);`",
+          "pseudocode": "",
+          "error_categories": [
+            "입출력 형식 오류 (scanf/printf)"
+          ],
+          "title": "두 정수 A, B를 입력받아 합을 출력"
+        },
+        "category_eval": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "error": "Error code: 400 - {'error': {'message': \"Failed to generate JSON. Please adjust your prompt. See 'failed_generation' for more details.\", 'type': 'invalid_request_error', 'code': 'json_validate_failed', 'failed_generation': '{\"score\":3,\"rule_violation\":true,\"violation_reason\":\"힌트에 `printf(\"%d\", a + b);`와 같은 정확한 수정 코드가 포함되어 있어 레벨 2 규칙인 ‘정답 코드 노출 금지’를 위반함\",\"comment\":\"개념 설명은 좋으나, 실제 수정 코드 예시가 포함돼 규칙 위반\"}'}}"
+        }
+      },
+      "3": {
+        "hint": {
+          "explanation": "현재 단계에서는 문제 해결을 위한 전체 흐름을 의사코드 형태로 서술합니다. 입력을 두 정수 a와 b 로 읽고, 두 값을 더한 결과를 result에 저장한 뒤 출력합니다. C에서 printf를 사용할 때는 형식 문자열이 필요하므로, 최종 코드는 printf(\"%d\", result) 형태가 됩니다.",
+          "pseudocode": "Alg.: SumTwoIntegers(a, b)\n    read a, b\n    result ← a + b\n    output result",
+          "error_categories": [
+            "입출력 형식 오류 (scanf/printf)"
+          ],
+          "title": "두 정수의 합 출력"
+        },
+        "category_eval": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 4,
+          "rule_violation": true,
+          "violation_reason": "설명에 실제 C 코드인 printf(\"%d\", result) 구문이 포함되어 레벨 3 규칙인 pseudocode만 제공해야 함을 위반함",
+          "comment": "힌트는 유용하지만 실제 코드가 들어가 레벨 규칙을 위반함"
+        }
+      }
+    }
+  },
+  {
+    "id": "c_off_by_one",
+    "language": "c",
+    "levels": {
+      "1": {
+        "hint": {
+          "explanation": "**줄 번호**: 4번째 줄\n\n**오류 부분**: `for (int i = 0; i <= 5; i++) arr[i] = i + 1;`\n\n**오류 타입**: 배열 범위 초과 (인덱스가 0~4를 넘어 5까지 접근)\n\n**줄 번호**: 5번째 줄\n\n**오류 부분**: `for (int i = 0; i <= 5; i++) printf(\"%d \", arr[i]);`\n\n**오류 타입**: 배열 범위 초과 (인덱스가 0~4를 넘어 5까지 접근)",
+          "pseudocode": "",
+          "error_categories": [
+            "배열 범위 초과",
+            "오프바이원 (off-by-one)"
+          ],
+          "title": "배열에 1~5 저장 후 출력"
+        },
+        "category_eval": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 5,
+          "rule_violation": false,
+          "violation_reason": "",
+          "comment": "정확한 라인 번호와 오류 유형만 제공해 레벨 1 규칙을 준수하며 학습에 충분히 도움이 됨"
+        }
+      },
+      "2": {
+        "hint": {
+          "explanation": "### 개념명\n배열 범위 초과\n\n### 설명\nC에서 배열은 선언된 크기만큼만 인덱스에 접근할 수 있습니다. 인덱스는 `0`부터 `size-1`까지이며, 이를 벗어나면 **정의되지 않은 동작**이 발생합니다. `for`문 조건을 `i < size` 로 설정해야 하며, `i <= size-1` 은 동일하지만 `i <= size` 는 범위를 초과합니다. 이런 오류는 종종 **오프바이원(off-by-one)** 오류와 관련됩니다.\n\n### 예시\n올바른 예: `for(int i=0; i<5; i++) arr[i]=i+1;`  \n잘못된 예: `for(int i=0; i<=5; i++) arr[i]=i+1;` (인덱스 5는 배열 범위 초과)",
+          "pseudocode": "",
+          "error_categories": [
+            "배열 범위 초과",
+            "오프바이원 (off-by-one)"
+          ],
+          "title": "배열에 1~5 저장 후 출력"
+        },
+        "category_eval": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01kh6cpnsef2rr0s1g1tt3nmgp` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 6713, Requested 1355. Please try again in 510ms. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+        }
+      },
+      "3": {
+        "hint": {
+          "explanation": "이번 단계에서는 문제를 해결하기 위한 알고리즘 흐름을 의사코드 형태로 작성합니다. 배열 인덱스를 1부터 시작하도록 설정하고, 1~5 값을 순차적으로 저장한 뒤, 같은 인덱스 범위에서 값을 출력하도록 합니다. 반복문의 범위와 배열 인덱스가 정확히 일치하도록 주의합니다.",
+          "pseudocode": "Alg.: PrintArray(arr[5])\narr[1] ← 1\narr[2] ← 2\narr[3] ← 3\narr[4] ← 4\narr[5] ← 5\nfor i ← 1 to 5 do\n    output arr[i] followed by a space\nend for",
+          "error_categories": [
+            "오프바이원 (off-by-one)",
+            "배열 범위 초과"
+          ],
+          "title": "배열에 1~5 저장하고 출력"
+        },
+        "category_eval": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 4,
+          "rule_violation": false,
+          "violation_reason": "",
+          "comment": "Helpful pseudocode clarifies correct index range and loop bounds, no rule violations."
+        }
+      }
+    }
+  },
+  {
+    "id": "c_null_pointer",
+    "language": "c",
+    "levels": {
+      "1": {
+        "hint": {
+          "explanation": "**줄 번호**: 5번째 줄\n\n**오류 부분**: `*p = 42;`\n\n**오류 타입**: NULL 포인터를 역참조하여 값을 저장하려고 함",
+          "pseudocode": "",
+          "error_categories": [
+            "NULL 포인터 참조",
+            "포인터 역참조 오류"
+          ],
+          "title": "동적 할당한 메모리에 값을 저장하고 출력"
+        },
+        "category_eval": {
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.667,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 5,
+          "rule_violation": false,
+          "violation_reason": "",
+          "comment": "정확하고 규칙에 맞는 힌트"
+        }
+      },
+      "2": {
+        "hint": {
+          "explanation": "### 개념명\nNULL 포인터 참조\n\n### 설명\n포인터가 **NULL** 상태인 채로 역참조(`*p`)하면 프로그램이 **세그멘테이션 오류**(Segmentation fault)를 일으킵니다. 메모리를 사용하려면 `malloc`·`calloc`·`realloc` 등으로 **동적 할당**을 수행하거나, 스택/전역 변수의 주소를 할당해야 합니다.\n\n### 예시\n올바른 경우: `int *p = malloc(sizeof(int)); *p = 42;`\n잘못된 경우: `int *p = NULL; *p = 42;`",
+          "pseudocode": "",
+          "error_categories": [
+            "NULL 포인터 참조"
+          ],
+          "title": "동적 할당 메모리 사용 시 NULL 포인터 참조 오류"
+        },
+        "category_eval": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 3,
+          "rule_violation": true,
+          "violation_reason": "Includes solution code (malloc example) violating rule",
+          "comment": "Good concept explanation but contains disallowed code"
+        }
+      }
+    }
+  },
+  {
+    "id": "c_memory_leak",
+    "language": "c",
+    "levels": {
+      "1": {
+        "hint": {
+          "explanation": "코드에 오류가 없습니다.",
+          "pseudocode": "",
+          "error_categories": [],
+          "title": "정수를 동적 할당하여 저장하고 출력"
+        },
+        "category_eval": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 1,
+          "rule_violation": true,
+          "violation_reason": "필요한 오류 위치와 타입을 제시하지 않음",
+          "comment": "힌트가 규칙을 위반하고 학습에 도움이 되지 않음"
+        }
+      },
+      "2": {
+        "hint": {
+          "explanation": "현재 코드에서는 메모리를 `malloc`으로 동적으로 할당하고, 해당 주소에 값을 저장한 뒤 `printf`로 출력하는 과정이 모두 올바르게 구현되어 있어 **오류가 없습니다**. 다만, 동적 메모리를 사용한 후에는 반드시 `free(p);`를 호출하여 할당된 메모리를 해제하는 것이 권장됩니다. 이를 통해 메모리 누수를 방지할 수 있습니다.",
+          "pseudocode": "",
+          "error_categories": [],
+          "title": "동적 할당된 정수 출력"
+        },
+        "category_eval": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 2,
+          "rule_violation": false,
+          "violation_reason": "",
+          "comment": "Hint incorrectly claims no error and adds unrelated advice, offering little useful guidance."
+        }
+      }
+    }
+  },
+  {
+    "id": "c_string_no_null",
+    "language": "c",
+    "levels": {
+      "1": {
+        "hint": {
+          "explanation": "**줄 번호**: 3번째 줄\n\n**오류 부분**: `char s[5] = {'h', 'e', 'l', 'l', 'o'};`\n\n**오류 타입**: 배열 크기가 문자열의 널 종료 문자를 포함하기에 부족합니다. 오프바이원 및 문자열 종료 문자 누락 오류.",
+          "pseudocode": "",
+          "error_categories": [
+            "오프바이원 (off-by-one)",
+            "문자열 종료 문자 누락"
+          ],
+          "title": ""
+        },
+        "category_eval": {
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.667,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 2,
+          "rule_violation": true,
+          "violation_reason": "힌트에 코드 스니펫(오류 부분) 제시",
+          "comment": "라인 번호와 오류 타입은 적절하지만 코드 스니펫 제공으로 규칙 위반"
+        }
+      },
+      "2": {
+        "hint": {
+          "explanation": "### 개념명\n문자열 종료 문자와 배열 크기\n\n### 설명\nC에서 문자열은 **NULL 문자** `\\0` 로 끝나는 문자 배열입니다. `printf(\"%s\")` 로 문자열을 출력할 때는 배열 내부에 `\\0` 가 포함돼 있어야 하며, 배열의 크기는 실제 문자 개수보다 **1** 크게 잡아야 합니다. 종료 문자가 없으면 **읽기 초과**가 발생해 정의되지 않은 동작을 일으킵니다.\n\n### 예시\n- 정상적인 문자열: 문자 데이터 뒤에 `\\0` 가 존재하고, 배열 크기가 충분히 할당된 경우\n- 오류가 발생하는 경우: 종료 문자가 없거나 배열 크기가 부족해 메모리 범위를 벗어나는 경우",
+          "pseudocode": "",
+          "error_categories": [
+            "배열 범위 초과",
+            "문자열 종료 문자 누락"
+          ],
+          "title": "문자열 출력"
+        },
+        "category_eval": {
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.667,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 4,
+          "rule_violation": false,
+          "violation_reason": "",
+          "comment": "핵심 개념을 정확히 설명했지만, 구체적인 배열 크기 제안 정도는 부족해 약간 감점"
+        }
+      }
+    }
+  },
+  {
+    "id": "c_infinite_loop",
+    "language": "c",
+    "levels": {
+      "1": {
+        "hint": {
+          "explanation": "`while` 루프 안에서 `i` 값을 증가시키는 코드가 없어 조건이 절대 변하지 않아 무한루프가 발생합니다. 따라서 프로그램이 종료되지 않고 시간 초과가 발생합니다. 오류는 `while (i <= 10) {` 줄과 그 내부에서 `i`가 변하지 않는 점이 원인입니다.",
+          "pseudocode": "",
+          "error_categories": [
+            "무한루프"
+          ],
+          "title": "1부터 10까지 출력"
+        },
+        "category_eval": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 4,
+          "rule_violation": true,
+          "violation_reason": "설명에 오류 원인 및 상세 내용을 포함해 허용된 오류 위치와 타입만 제공해야 함을 위반함",
+          "comment": "힌트는 유용하지만 규칙을 초과했습니다"
+        }
+      },
+      "2": {
+        "hint": {
+          "explanation": "### 개념명\n무한루프\n\n### 설명\n프로그램이 **끝없이 반복**되는 상황을 의미합니다. `while`이나 `for` 같은 반복문 안에서 **조건을 변화시키는 코드**(예: 변수 증가)가 없으면 조건이 언제까지나 참이 되어 **무한루프**에 빠집니다. 이 경우 CPU 시간을 지속적으로 소모해 **시간 초과**가 발생합니다.\n\n### 예시\n올바른 예: `i++` 를 포함한 `while (i <= 10) { … i++; }`\n잘못된 예: `while (i <= 10) { … }` (증가 코드 없음)",
+          "pseudocode": "",
+          "error_categories": [
+            "무한루프"
+          ],
+          "title": "1부터 10까지 출력"
+        },
+        "category_eval": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 4,
+          "rule_violation": true,
+          "violation_reason": "정답 코드가 포함된 예시(i++ while 루프)",
+          "comment": "개념 설명은 좋지만 정답 코드가 노출돼 규칙 위반"
+        }
+      }
+    }
+  },
+  {
+    "id": "py_index_error",
+    "language": "python",
+    "levels": {
+      "1": {
+        "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01kh6cpnsef2rr0s1g1tt3nmgp` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5759, Requested 2855. Please try again in 4.605s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+      },
+      "2": {
+        "hint": {
+          "explanation": "### 개념명\n오프바이원 (off-by-one)\n\n### 설명\n인덱스는 **0부터 시작**하므로, 리스트에 `n`개의 원소가 있을 때 마지막 원소의 인덱스는 `n-1`입니다. `n`번째 원소에 접근하면 **범위를 벗어나는** 상황이 발생합니다. 이와 같이 인덱스를 하나씩 초과해서 접근하는 오류를 **오프바이원**이라 합니다. `list`와 같은 시퀀스 자료형에서 인덱스를 사용할 때는 항상 **길이와 인덱스 관계**를 확인해야 합니다.\n\n### 예시\n올바른 접근: `nums[0] + nums[1]` (첫 번째와 두 번째 원소)\n잘못된 접근: `nums[0] + nums[2]` (존재하지 않는 세 번째 원소)",
+          "pseudocode": "",
+          "error_categories": [
+            "오프바이원 (off-by-one)",
+            "배열 범위 초과"
+          ],
+          "title": "리스트 첫 번째와 두 번째 원소 합 출력"
+        },
+        "category_eval": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 3,
+          "rule_violation": true,
+          "violation_reason": "힌트에 `nums[0] + nums[1]`이라는 정확한 인덱스 조합을 제시해 정답을 노출함",
+          "comment": "개념 설명은 좋지만 정답 코드를 직접 보여 규칙을 위반함"
+        }
+      }
+    }
+  },
+  {
+    "id": "py_int_division",
+    "language": "python",
+    "levels": {
+      "1": {
+        "hint": {
+          "explanation": "**줄 번호**: 2번째 줄\n\n**오류 부분**: `print(a / b)`\n\n**오류 타입**: 정수 나눗셈을 수행해야 하는데 실수 나눗셈 연산자 `/`를 사용했습니다.",
+          "pseudocode": "",
+          "error_categories": [
+            "정수 나눗셈 오류 (/ vs //)"
+          ],
+          "title": "두 수를 입력받아 정수 나눗셈 결과를 출력"
+        },
+        "category_eval": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 4,
+          "rule_violation": false,
+          "violation_reason": "",
+          "comment": "Helpful line-number and error-type hint without revealing solution"
+        }
+      },
+      "2": {
+        "hint": {
+          "explanation": "### 개념명\n정수 나눗셈 오류 (/ vs //)\n\n### 설명\n파이썬에서 `/` 연산자는 **부동소수점 나눗셈**을 수행하여 결과가 `float` 타입이 됩니다. 정수 나눗셈을 원할 경우에는 `//` 연산자를 사용해야 하며, 이 연산자는 **몫만** 반환해 `int` 타입 결과를 얻습니다.\n\n### 예시\n올바른 예: `7 // 2` → `3`\n잘못된 예: `7 / 2` → `3.5` (부동소수점 결과)",
+          "pseudocode": "",
+          "error_categories": [
+            "정수 나눗셈 오류 (/ vs //)"
+          ],
+          "title": "두 수를 입력받아 정수 나눗셈 결과 출력"
+        },
+        "category_eval": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 5,
+          "rule_violation": false,
+          "violation_reason": "",
+          "comment": "Concept explanation is clear and appropriate for level 2"
+        }
+      }
+    }
+  },
+  {
+    "id": "py_scope_error",
+    "language": "python",
+    "levels": {
+      "1": {
+        "hint": {
+          "explanation": "**줄 번호**: 3번째 줄\n\n**오류 부분**: `count += 1`\n\n**오류 타입**: UnboundLocalError 발생, 지역 변수로 인식되어 초기화되지 않음",
+          "pseudocode": "",
+          "error_categories": [
+            "변수 스코프 오류 (global/nonlocal 누락)"
+          ],
+          "title": "전역 변수 수정 오류"
+        },
+        "category_eval": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 4,
+          "rule_violation": true,
+          "violation_reason": "힌트에 오류가 발생한 코드 스니펫(`count += 1`)을 포함하여 레벨 1 규칙(오류 위치와 타입만) 위반",
+          "comment": "줄 번호와 오류 타입은 좋지만 코드 스니펫 노출로 규칙 위반"
+        }
+      },
+      "2": {
+        "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01kh6cpnsef2rr0s1g1tt3nmgp` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5733, Requested 2809. Please try again in 4.065s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+      }
+    }
+  },
+  {
+    "id": "algo_binary_search",
+    "language": "c",
+    "levels": {
+      "1": {
+        "hint": {
+          "explanation": "**줄 번호**: 5번째 줄\n\n**오류 부분**: `int lo = 0, hi = n;`\n\n**오류 타입**: `hi`가 배열의 마지막 인덱스를 초과하도록 초기화되었습니다. 이는 범위 초과와 무한 루프를 초래할 수 있습니다.\n\n**줄 번호**: 8번째 줄\n\n**오류 부분**: `lo = mid;`\n\n**오류 타입**: `lo`가 `mid`와 동일하게 설정돼서 탐색 구간이 감소하지 않아 무한 루프가 발생합니다.",
+          "pseudocode": "",
+          "error_categories": [
+            "무한루프",
+            "오프바이원"
+          ],
+          "title": "정렬된 배열 이분 탐색"
+        },
+        "category_eval": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "invalid_categories": [
+            "오프바이원"
+          ]
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 4,
+          "rule_violation": false,
+          "violation_reason": "",
+          "comment": "Helpful error locations and types without revealing fixes, meeting level‑1 constraints."
+        }
+      },
+      "2": {
+        "hint": {
+          "explanation": "### 개념명\n오프바이원 및 무한루프 방지\n\n### 설명\n이분 탐색은 `lo`와 `hi`가 가리키는 구간을 **반드시** 축소시켜야 합니다.  \n`mid`를 구한 뒤 `target`이 더 크면 `lo`를 `mid + 1` 로, 작으면 `hi`를 `mid - 1` 로 설정해야 합니다.  \n`lo = mid` 와 같이 **동일한 값으로 유지**하면 구간이 감소하지 않아 `while (lo < hi)` 조건이 영원히 만족하게 되고 **무한 루프**가 발생합니다.  \n또한 `hi`를 배열의 마지막 인덱스로 `n-1` 로 초기화하지 않으면 `mid`가 `n` 에 도달할 수 있어 **오프바이원** 오류가 발생합니다.\n\n### 예시\n올바른 흐름: `lo = mid + 1` , `hi = mid - 1`  \n잘못된 흐름: `lo = mid` (구간이 줄어들지 않음)",
+          "pseudocode": "",
+          "error_categories": [
+            "오프바이원 (off-by-one)",
+            "무한루프"
+          ],
+          "title": "정렬된 배열에서 이분 탐색 구현"
+        },
+        "category_eval": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 4,
+          "rule_violation": false,
+          "violation_reason": "",
+          "comment": "Helpful conceptual hint addressing off‑by‑one and infinite loop without revealing solution code"
+        }
+      },
+      "3": {
+        "hint": {
+          "explanation": "현재 구현은 배열 인덱스 범위와 루프 조건에서 오프바이원 오류와 논리 오류가 있습니다. 이분 탐색은 보통 [lo, hi] (양쪽 포함) 혹은 [lo, hi) (hi 제외) 중 하나의 구간을 일관되게 유지해야 합니다. 구간을 포함 구간([lo, hi])으로 잡는 경우, 초기 hi는 n‑1이어야 하고, 루프 조건은 lo ≤ hi가 됩니다. 또한 mid보다 작은 경우에는 탐색 구간을 오른쪽으로 옮기기 위해 lo를 mid+1으로, 큰 경우에는 hi를 mid‑1으로 업데이트해야 합니다. 이러한 수정으로 무한 루프와 인덱스 초과를 방지하고 올바른 인덱스를 반환할 수 있습니다.",
+          "pseudocode": "Alg.: BinarySearch(arr, n, target)\n    lo ← 0\n    hi ← n‑1\n    while lo ≤ hi do\n        mid ← (lo + hi) / 2\n        if arr[mid] = target then\n            return mid\n        else if arr[mid] < target then\n            lo ← mid + 1\n        else\n            hi ← mid - 1\n    end while\n    return -1",
+          "error_categories": [
+            "오프바이원 (off-by-one)",
+            "조건문 논리 오류",
+            "무한루프"
+          ],
+          "title": "정렬된 배열에서 이분 탐색으로 target 찾기"
+        },
+        "category_eval": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 5,
+          "rule_violation": false,
+          "violation_reason": "",
+          "comment": "Clear, correct pseudocode fixing off‑by‑one and loop logic; highly useful for learning"
+        }
+      }
+    }
+  },
+  {
+    "id": "algo_dfs_no_visit",
+    "language": "c",
+    "levels": {
+      "1": {
+        "hint": {
+          "explanation": "**줄 번호**: 6번째 줄\n\n**오류 부분**: `if (graph[v][i]) dfs(i);`\n\n**오류 타입**: 방문한 정점을 체크하지 않아 이미 방문한 정점으로도 재귀 호출이 일어나 무한히 깊어져 스택 오버플로우가 발생합니다.",
+          "pseudocode": "",
+          "error_categories": [
+            "무한루프"
+          ],
+          "title": "인접 리스트 DFS 탐색"
+        },
+        "category_eval": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 5,
+          "rule_violation": false,
+          "violation_reason": "",
+          "comment": "Clear level‑1 hint with line number and error type, no solution details provided."
+        }
+      },
+      "2": {
+        "hint": {
+          "explanation": "### 개념명\n재귀 기저 조건 누락 및 무한 루프\n\n### 설명\n재귀 함수를 사용할 때 **기저 조건**(base case)이 없으면 함수가 끝없이 자신을 호출하게 되어 호출 스택이 계속 증가합니다. 이는 `dfs`와 같이 그래프를 탐색할 때 이미 방문한 정점을 다시 방문하도록 구현하면 발생합니다. 스택 메모리가 한계에 도달하면 **스택 오버플로**가 발생합니다. 따라서 그래프 탐색에서는 `visited` 배열 등을 이용해 **이미 방문한 정점**을 기록하고, 재귀 호출 전에 이를 검사해야 합니다.\n\n### 예시\n올바른 예: `if (!visited[v]) { visited[v]=1; dfs(v); }`\n잘못된 예: `dfs(v); // visited 체크 없음`",
+          "pseudocode": "",
+          "error_categories": [
+            "재귀 기저 조건 누락",
+            "무한루프"
+          ],
+          "title": "DFS 구현 시 방문 체크 누락으로 인한 스택 오버플로"
+        },
+        "category_eval": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 4,
+          "rule_violation": false,
+          "violation_reason": "",
+          "comment": "Conceptual explanation of missing base case and need for visited array; useful without revealing solution."
+        }
+      },
+      "3": {
+        "hint": {
+          "explanation": "현재 코드는 인접 행렬을 사용하고 방문 여부를 체크하지 않아 이미 방문한 정점을 다시 호출합니다. 그래프에 사이클이 존재하면 같은 정점을 반복 호출하게 되어 재귀가 끝없이 진행되어 스택 오버플로우가 발생합니다. 이를 방지하려면 각 정점의 방문 상태를 저장하는 visited 배열을 두고, 아직 방문하지 않은 정점에 대해서만 재귀 호출하도록 조건문을 추가해야 합니다. 또한 인접 리스트를 사용하면 메모리 사용량을 줄이고, 인접 정점 순회를 효율적으로 할 수 있습니다.",
+          "pseudocode": "Alg.: DFS(start, adj, visited)\n    visited[start] ← true\n    output start\n    for each u in adj[start] do\n        if not visited[u] then\n            DFS(u, adj, visited)",
+          "error_categories": [
+            "무한루프",
+            "조건문 논리 오류"
+          ],
+          "title": "DFS 인접 리스트 탐색"
+        },
+        "category_eval": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "invalid_categories": []
+        },
+        "format_eval": {
+          "issues": [],
+          "passed": true
+        },
+        "judge": {
+          "score": 5,
+          "rule_violation": false,
+          "violation_reason": "",
+          "comment": "명확한 문제 원인 설명과 올바른 의사코드 제공으로 학습에 매우 도움이 됨"
+        }
+      }
+    }
+  }
+]

@@ -148,10 +148,13 @@ body {
 
 .problem-url-input {
   width: 100%;
-  padding: 10px;
+  min-height: 48px;
+  padding: 12px 14px;
   border: 1px solid var(--border-input);
   border-radius: 4px;
   font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.4;
   box-sizing: border-box;
   background-color: var(--input-bg);
   color: var(--text-primary);

@@ -11,13 +11,23 @@ from prompts import SYSTEM_PROMPT, build_prompt
 from database import get_db
 from db_models import Submission, Hint, HintCategory
 from schemas import HintResponse, HistoryItem, HistoryResponse, ProblemSummary, ProblemListResponse, SubmissionSummary, SubmissionListResponse, DirectProblemSummary, DirectProblemListResponse, CategoryStat, CategoryStatsResponse
-from auth import get_current_user
+from auth import get_current_payload, get_current_user
 
 router = APIRouter()
 
 
 def _unique_categories(raw: list | None) -> list[str]:
     return list({c for c in (raw or []) if c is not None})
+
+
+def ensure_sejong_access_for_source(source: str | None, payload: dict) -> None:
+    if source == "oj" and payload.get("is_sejong_verified") is not True:
+        raise HTTPException(status_code=403, detail="세종대 로그인이 필요합니다")
+
+
+def should_exclude_oj_history(source: str | None, payload: dict) -> bool:
+    ensure_sejong_access_for_source(source, payload)
+    return source is None and payload.get("is_sejong_verified") is not True
 
 
 @router.get("/health")
@@ -29,9 +39,10 @@ def health_check():
 @router.post("/hint", response_model=HintResponse)
 def get_hint(
     request: HintRequest,
-    current_user_id: int = Depends(get_current_user),
+    payload: dict = Depends(get_current_payload),
     db: Session = Depends(get_db),
 ):
+    current_user_id = payload["user_id"]
     logger.info(f"힌트 요청 수신 | user_id={current_user_id} | level={request.hint_level} | submission_id={request.submission_id} | problem_url={request.problem_url} | code_length={len(request.code)}")
 
     if request.submission_id is not None:
@@ -40,6 +51,7 @@ def get_hint(
             raise HTTPException(status_code=404, detail="submission not found")
         if submission.user_id != current_user_id:
             raise HTTPException(status_code=403, detail="forbidden")
+        ensure_sejong_access_for_source(submission.source, payload)
         if len(submission.hints) >= 3:
             raise HTTPException(status_code=400, detail="hint limit exceeded")
         existing_levels = {h.hint_level for h in submission.hints}
@@ -51,7 +63,16 @@ def get_hint(
         expected_output = submission.expected_output
         is_new_submission = False
     else:
-        if request.problem_url:
+        ensure_sejong_access_for_source(request.source, payload)
+        if request.source == "oj":
+            problem = request.problem
+            expected_input = request.expected_input
+            expected_output = request.expected_output
+            source = "oj"
+            external_problem_id = None
+            title = ""
+            logger.info("OJ 문제 사용")
+        elif request.problem_url:
             fetched = fetch_problem_from_url(request.problem_url)
             source = "url"
             external_problem_id = request.problem_url
@@ -174,9 +195,10 @@ def patch_submission(
 @router.get("/history/submissions", response_model=SubmissionListResponse)
 def get_submission_list(
     source: Optional[str] = None,
-    current_user_id: int = Depends(get_current_user),
+    payload: dict = Depends(get_current_payload),
     db: Session = Depends(get_db),
 ):
+    current_user_id = payload["user_id"]
     logger.info(f"제출 목록 조회 | user_id={current_user_id} | source={source}")
 
     query = (
@@ -193,7 +215,9 @@ def get_submission_list(
         .filter(Submission.user_id == current_user_id)
     )
 
-    if source is not None:
+    if should_exclude_oj_history(source, payload):
+        query = query.filter(Submission.source != "oj")
+    elif source is not None:
         query = query.filter(Submission.source == source)
 
     rows = (
@@ -301,18 +325,19 @@ def get_direct_problem_list(
 
 @router.get("/history/categories", response_model=CategoryStatsResponse)
 def get_category_stats(
-    current_user_id: int = Depends(get_current_user),
+    payload: dict = Depends(get_current_payload),
     db: Session = Depends(get_db),
 ):
+    current_user_id = payload["user_id"]
     logger.info(f"카테고리 통계 조회 | user_id={current_user_id}")
-    rows = (
+    query = (
         db.query(HintCategory.category, func.count().label("count"))
         .join(Submission, Submission.id == HintCategory.submission_id)
         .filter(Submission.user_id == current_user_id)
-        .group_by(HintCategory.category)
-        .order_by(func.count().desc())
-        .all()
     )
+    if should_exclude_oj_history(None, payload):
+        query = query.filter(Submission.source != "oj")
+    rows = query.group_by(HintCategory.category).order_by(func.count().desc()).all()
     return CategoryStatsResponse(items=[
         CategoryStat(category=row.category, count=row.count)
         for row in rows
@@ -327,15 +352,18 @@ def get_history(
     problem_id: Optional[str] = None,
     submission_id: Optional[int] = None,
     problem_text: Optional[str] = None,
-    current_user_id: int = Depends(get_current_user),
+    payload: dict = Depends(get_current_payload),
     db: Session = Depends(get_db),
 ):
+    current_user_id = payload["user_id"]
     logger.info(f"히스토리 조회 | user_id={current_user_id} | page={page} | limit={limit} | source={source} | problem_id={problem_id} | submission_id={submission_id} | problem_text={'(set)' if problem_text else None}")
 
     offset = (page - 1) * limit
     base_query = db.query(Hint).join(Submission).filter(Submission.user_id == current_user_id)
 
-    if source is not None:
+    if should_exclude_oj_history(source, payload):
+        base_query = base_query.filter(Submission.source != "oj")
+    elif source is not None:
         base_query = base_query.filter(Submission.source == source)
     if problem_id is not None:
         base_query = base_query.filter(Submission.external_problem_id == problem_id)

@@ -33,5 +33,11 @@ export async function postHint(req: HintRequest): Promise<HintApiResponse> {
     clearToken();
     throw new Error('Unauthorized');
   }
+  if (res.status === 403) {
+    throw new Error('SejongRequired');
+  }
+  if (!res.ok) {
+    throw new Error('HintRequestFailed');
+  }
   return res.json();
 }
