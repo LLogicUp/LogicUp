@@ -1,14 +1,12 @@
-import os
 import re
 import requests
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, field_validator
 from sqlalchemy.orm import Session
-from config import logger
+from config import KAKAO_CLIENT_SECRET, KAKAO_REDIRECT_URI, KAKAO_REST_API_KEY, logger
 from database import get_db
 from db_models import User
 from auth import hash_password, verify_password, create_token
-from dotenv import load_dotenv
 import ssl
 import threading
 from requests.adapters import HTTPAdapter
@@ -42,12 +40,6 @@ def _sejong_auth(student_id: str, password: str):
             return auth(id=student_id, password=password, methods=DosejongSession)
         finally:
             requests.sessions.Session.__init__ = orig
-
-load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
-
-KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY")
-KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET")
-KAKAO_REDIRECT_URI = os.getenv("KAKAO_REDIRECT_URI")
 
 auth_router = APIRouter()
 
