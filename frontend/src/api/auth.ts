@@ -1,3 +1,5 @@
+import { apiUrl } from './client';
+
 const TOKEN_KEY = 'lu_token';
 
 export function getToken(): string | null {
@@ -53,7 +55,7 @@ function extractErrorMessage(detail: unknown, fallback: string): string {
 }
 
 export async function login(userid: string, password: string): Promise<void> {
-  const res = await fetch('http://localhost:8000/login', {
+  const res = await fetch(apiUrl('/login'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userid, password }),
@@ -67,7 +69,7 @@ export async function login(userid: string, password: string): Promise<void> {
 }
 
 export async function register(userid: string, password: string): Promise<void> {
-  const res = await fetch('http://localhost:8000/register', {
+  const res = await fetch(apiUrl('/register'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userid, password }),
@@ -79,7 +81,7 @@ export async function register(userid: string, password: string): Promise<void> 
 }
 
 export async function kakaoLogin(code: string): Promise<void> {
-  const res = await fetch('http://localhost:8000/auth/kakao', {
+  const res = await fetch(apiUrl('/auth/kakao'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ code }),
@@ -93,7 +95,7 @@ export async function kakaoLogin(code: string): Promise<void> {
 }
 
 export async function sejongLogin(studentId: string, password: string): Promise<void> {
-  const res = await fetch('http://localhost:8000/auth/sejong', {
+  const res = await fetch(apiUrl('/auth/sejong'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ student_id: studentId, password }),

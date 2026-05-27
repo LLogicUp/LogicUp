@@ -1,4 +1,5 @@
 import { authHeaders } from './auth';
+import { apiUrl } from './client';
 
 export interface HistoryItem {
   hint_id: number;
@@ -94,7 +95,7 @@ export async function fetchHistory(params: FetchHistoryParams = {}): Promise<His
   if (submission_id !== undefined) qs.set('submission_id', String(submission_id));
   if (problem_text !== undefined) qs.set('problem_text', problem_text);
 
-  const res = await fetch(`http://localhost:8000/history?${qs}`, {
+  const res = await fetch(apiUrl(`/history?${qs}`), {
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
   });
   if (res.status === 401) throw new UnauthorizedError();
@@ -103,7 +104,7 @@ export async function fetchHistory(params: FetchHistoryParams = {}): Promise<His
 }
 
 export async function fetchDirectProblemList(): Promise<DirectProblemListResponse> {
-  const res = await fetch('http://localhost:8000/history/direct-problems', {
+  const res = await fetch(apiUrl('/history/direct-problems'), {
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
   });
   if (res.status === 401) throw new UnauthorizedError();
@@ -114,7 +115,7 @@ export async function fetchDirectProblemList(): Promise<DirectProblemListRespons
 export async function fetchSubmissionList(source?: 'url' | 'direct' | 'oj'): Promise<SubmissionListResponse> {
   const qs = new URLSearchParams();
   if (source !== undefined) qs.set('source', source);
-  const res = await fetch(`http://localhost:8000/history/submissions?${qs}`, {
+  const res = await fetch(apiUrl(`/history/submissions?${qs}`), {
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
   });
   if (res.status === 401) throw new UnauthorizedError();
@@ -123,7 +124,7 @@ export async function fetchSubmissionList(source?: 'url' | 'direct' | 'oj'): Pro
 }
 
 export async function fetchCategoryStats(): Promise<CategoryStatsResponse> {
-  const res = await fetch('http://localhost:8000/history/categories', {
+  const res = await fetch(apiUrl('/history/categories'), {
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
   });
   if (res.status === 401) throw new UnauthorizedError();
@@ -132,7 +133,7 @@ export async function fetchCategoryStats(): Promise<CategoryStatsResponse> {
 }
 
 export async function fetchProblemList(): Promise<ProblemListResponse> {
-  const res = await fetch('http://localhost:8000/history/problems', {
+  const res = await fetch(apiUrl('/history/problems'), {
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
   });
   if (res.status === 401) throw new UnauthorizedError();

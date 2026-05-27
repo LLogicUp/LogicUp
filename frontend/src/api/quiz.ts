@@ -1,4 +1,5 @@
 import { authHeaders } from './auth';
+import { apiUrl } from './client';
 
 export type QuestionType = 'short_answer' | 'multiple_choice';
 export type QuizLanguage = 'c' | 'cpp' | 'python' | 'java';
@@ -57,10 +58,8 @@ export interface QuizSubmitResult {
   results: QuizQuestionResult[];
 }
 
-const BASE = 'http://localhost:8000';
-
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(apiUrl(path), {
     ...init,
     headers: { 'Content-Type': 'application/json', ...authHeaders(), ...init?.headers },
   });
