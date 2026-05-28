@@ -1,0 +1,22 @@
+힌트 정확도 평가 리포트 (20260526_164130)
+============================================================
+
+[ERROR] c_null_pointer L2: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01kh6cpnsef2rr0s1g1tt3nmgp` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5819, Requested 2709. Please try again in 3.96s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+■ 카테고리 분류 정확도
+  평균 Precision : 0.680
+  평균 Recall    : 0.620
+  평균 F1        : 0.633
+
+■ LLM Judge 품질 점수 (1~5)
+  평균 점수: 4.32
+  최소: 3  최대: 5
+
+■ 형식 오류: 없음
+
+■ 레벨 규칙 위반 (LLM Judge 판정)
+  py_int_division L1: 힌트가 오류 위치와 코드 스니펫, 오류 타입만 알려줘야 하는 레벨 1 규칙을 어겨, 정수 나눗셈을 위해 // 연산자를 사용해야 한다는 수정 방법까지 제시함
+  py_scope_error L1: 힌트에 오류 원인에 대한 설명이 포함되어 레벨 1 규칙(오류 위치·코드·타입만 제공) 위반
+  algo_dfs_no_visit L1: 제공된 힌트가 오류 위치·코드 스니펫·오류 타입만 알려줘야 하는 레벨 1 규칙을 넘어, 왜 스택 오버플로우가 발생하는지 추가 설명을 포함하고 있음
+
+
+원시 결과: /Users/jeonjaejun/Desktop/Project/LogicUp/backend/eval/results_20260526_164130.json

@@ -1,0 +1,29 @@
+힌트 정확도 평가 리포트 (20260528_142212)
+============================================================
+
+[ERROR] c_string_no_null L2: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01kh6cpnsef2rr0s1g1tt3nmgp` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5915, Requested 2164. Please try again in 592.5ms. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+[ERROR] py_int_division L1: Error code: 400 - {'error': {'message': "Failed to generate JSON. Please adjust your prompt. See 'failed_generation' for more details.", 'type': 'invalid_request_error', 'code': 'json_validate_failed', 'failed_generation': '**줄 번호**: 2번째 줄  \n\n**오류 부분**: `print(a / b)`  \n\n**오류 타입**: 정수 나눗셈 오류 (/ vs //)'}}
+[ERROR] algo_binary_search L1: Error code: 400 - {'error': {'message': "Failed to generate JSON. Please adjust your prompt. See 'failed_generation' for more details.", 'type': 'invalid_request_error', 'code': 'json_validate_failed', 'failed_generation': '**줄 번호**: 6번째 줄  \n\n**오류 부분**: `else if (arr[mid] < target) lo = mid;`  \n\n**오류 타입**: 무한루프'}}
+■ 카테고리 분류 정확도
+  평균 Precision : 0.848
+  평균 Recall    : 0.804
+  평균 F1        : 0.812
+
+■ LLM Judge 품질 점수 (1~5)
+  평균 점수: 3.48
+  최소: 1  최대: 5
+
+■ 형식 오류: 없음
+
+■ 레벨 규칙 위반 (LLM Judge 판정)
+  c_printf_format L1: 힌트에 수정 방법(서식 지정자 사용)과 예시를 제시하여 레벨 1 규칙을 위반함
+  c_null_pointer L1: 제시된 힌트가 오류 위치·코드 스니펫·오류 타입만 알려야 하는 레벨 1 규칙을 어겨, 동적 메모리 할당 필요성을 제안함
+  c_memory_leak L1: 힌트에 NULL 확인 및 free 사용 등 수정 방법을 제시하여 레벨 1 규칙인 오류 위치·코드 스니펫·오류 타입만 제공해야 하는 요구를 위반함
+  c_string_no_null L1: 힌트에 오류 위치와 코드 스니펫이 제공되지 않아 레벨 1 규칙을 위반함
+  c_infinite_loop L1: 힌트에 오류 위치와 코드 스니펫을 제공하지 않고, 오류 원인에 대한 설명을 포함해 레벨 1 규칙을 위반함
+  py_index_error L1: 힌트에 오류 수정 방법(인덱스 1 사용)과 오류 위치를 명시하지 않아 레벨 1 규칙을 위반했습니다
+  py_scope_error L1: 수정 방법 및 해결 설명을 제공하여 레벨 1 규칙(오류 위치·코드·타입만 제공) 위반
+  algo_dfs_no_visit L1: 힌트에 오류 위치(줄 번호)와 해당 코드 스니펫이 제공되지 않음
+
+
+원시 결과: /Users/jeonjaejun/Desktop/Project/LogicUp/backend/eval/results_20260528_142212.json
