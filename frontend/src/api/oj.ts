@@ -1,4 +1,5 @@
 import { authHeaders, clearToken } from './auth';
+import { apiUrl } from './client';
 
 export interface OjProblemSummary {
   number: number;
@@ -44,7 +45,7 @@ function handleOjAuthError(res: Response): void {
 }
 
 export async function fetchOjIndex(): Promise<OjSubjectSummary[]> {
-  const res = await fetch('http://localhost:8000/oj', {
+  const res = await fetch(apiUrl('/oj'), {
     headers: authHeaders(),
   });
   handleOjAuthError(res);
@@ -59,7 +60,7 @@ export async function fetchOjProblem(
   problemNumber: string
 ): Promise<OjProblemDetail> {
   const res = await fetch(
-    `http://localhost:8000/oj/${encodeURIComponent(subject)}/${encodeURIComponent(chapter)}/${encodeURIComponent(problemNumber)}`,
+    apiUrl(`/oj/${encodeURIComponent(subject)}/${encodeURIComponent(chapter)}/${encodeURIComponent(problemNumber)}`),
     { headers: authHeaders() }
   );
   handleOjAuthError(res);

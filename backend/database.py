@@ -1,19 +1,6 @@
-import os
-import logging
-from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
-
-logger = logging.getLogger("logicup")
-
-# Always load backend/.env before resolving DATABASE_URL so local runs
-# behave consistently even when the shell has no exported env vars.
-load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
-
-DATABASE_URL = os.environ.get("DATABASE_URL")
-if not DATABASE_URL:
-    logger.error("DATABASE_URL 환경변수가 설정되지 않았습니다")
-    raise RuntimeError("DATABASE_URL 환경변수가 설정되지 않았습니다.")
+from config import DATABASE_URL, logger
 
 logger.info(f"DB 연결 | {DATABASE_URL.split('@')[-1] if '@' in DATABASE_URL else 'local'}")
 engine = create_engine(

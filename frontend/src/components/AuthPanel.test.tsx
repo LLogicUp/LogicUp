@@ -16,13 +16,13 @@ describe('AuthPanel - 세종대 로그인', () => {
     render(<AuthPanel onLogin={mockOnLogin} />);
 
     expect(screen.getByText('카카오로 로그인')).toBeInTheDocument();
-    expect(screen.getByText('세종대 포털')).toBeInTheDocument();
+    expect(screen.getByText('세종대 로그인')).toBeInTheDocument();
   });
 
   it('세종대 포털 버튼 클릭 시 학번/비밀번호 폼으로 전환된다', () => {
     render(<AuthPanel onLogin={mockOnLogin} />);
 
-    fireEvent.click(screen.getByText('세종대 포털'));
+    fireEvent.click(screen.getByText('세종대 로그인'));
 
     expect(screen.getByPlaceholderText('학번')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('포털 비밀번호')).toBeInTheDocument();
@@ -32,14 +32,14 @@ describe('AuthPanel - 세종대 로그인', () => {
   it('세종대 폼에서 뒤로가기 클릭 시 소셜 버튼 화면으로 복귀한다', () => {
     render(<AuthPanel onLogin={mockOnLogin} />);
 
-    fireEvent.click(screen.getByText('세종대 포털'));
+    fireEvent.click(screen.getByText('세종대 로그인'));
     expect(screen.getByPlaceholderText('학번')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('← 뒤로'));
 
     expect(screen.queryByPlaceholderText('학번')).not.toBeInTheDocument();
     expect(screen.getByText('카카오로 로그인')).toBeInTheDocument();
-    expect(screen.getByText('세종대 포털')).toBeInTheDocument();
+    expect(screen.getByText('세종대 로그인')).toBeInTheDocument();
   });
 
   it('학번과 비밀번호 입력 후 로그인 성공 시 onLogin을 호출한다', async () => {
@@ -47,7 +47,7 @@ describe('AuthPanel - 세종대 로그인', () => {
 
     render(<AuthPanel onLogin={mockOnLogin} />);
 
-    fireEvent.click(screen.getByText('세종대 포털'));
+    fireEvent.click(screen.getByText('세종대 로그인'));
     fireEvent.change(screen.getByPlaceholderText('학번'), {
       target: { value: '21011234' },
     });
@@ -69,7 +69,7 @@ describe('AuthPanel - 세종대 로그인', () => {
 
     render(<AuthPanel onLogin={mockOnLogin} />);
 
-    fireEvent.click(screen.getByText('세종대 포털'));
+    fireEvent.click(screen.getByText('세종대 로그인'));
     fireEvent.change(screen.getByPlaceholderText('학번'), {
       target: { value: '21011234' },
     });
@@ -87,12 +87,12 @@ describe('AuthPanel - 세종대 로그인', () => {
   it('세종대 폼으로 전환 시 입력값이 초기화된다', () => {
     render(<AuthPanel onLogin={mockOnLogin} />);
 
-    fireEvent.click(screen.getByText('세종대 포털'));
+    fireEvent.click(screen.getByText('세종대 로그인'));
     fireEvent.change(screen.getByPlaceholderText('학번'), {
       target: { value: '21011234' },
     });
     fireEvent.click(screen.getByText('← 뒤로'));
-    fireEvent.click(screen.getByText('세종대 포털'));
+    fireEvent.click(screen.getByText('세종대 로그인'));
 
     expect(screen.getByPlaceholderText('학번')).toHaveValue('');
   });

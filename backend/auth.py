@@ -1,15 +1,11 @@
-import os
 import bcrypt
 from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from dotenv import load_dotenv
-from config import logger
+from config import JWT_SECRET_KEY, logger
 
-load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
-
-SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+SECRET_KEY = JWT_SECRET_KEY
 ALGORITHM = "HS256"
 TOKEN_EXPIRE_MINUTES = 60
 

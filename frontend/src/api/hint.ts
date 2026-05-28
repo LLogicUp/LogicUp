@@ -1,4 +1,5 @@
 import { authHeaders, clearToken } from './auth';
+import { apiUrl } from './client';
 
 export interface HintRequest {
   submission_id: number | null;
@@ -24,7 +25,7 @@ export interface HintApiResponse {
 }
 
 export async function postHint(req: HintRequest): Promise<HintApiResponse> {
-  const res = await fetch('http://localhost:8000/hint', {
+  const res = await fetch(apiUrl('/hint'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify(req),
