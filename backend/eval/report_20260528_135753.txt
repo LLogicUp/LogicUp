@@ -1,0 +1,21 @@
+힌트 정확도 평가 리포트 (20260528_135753)
+============================================================
+
+■ 카테고리 분류 정확도
+  평균 Precision : 0.808
+  평균 Recall    : 0.712
+  평균 F1        : 0.744
+
+■ LLM Judge 품질 점수 (1~5)
+  평균 점수: 4.12
+  최소: 2  최대: 5
+
+■ 형식 오류: 없음
+
+■ 레벨 규칙 위반 (LLM Judge 판정)
+  c_infinite_loop L1: 힌트가 오류 위치(줄 번호)와 코드 스니펫을 제공하지 않았으며, 반복 변수를 증가시켜야 한다는 수정 방법을 제시해 레벨 1 규칙을 위반함
+  py_index_error L1: Includes extra sections (pseudocode, error categories) beyond the required line number, code snippet, and error type
+  py_int_division L1: 레벨 1 규칙에 따라 줄 번호와 코드 스니펫만 제공해야 하는데, 해당 정보가 없고 추가 설명까지 포함돼 규칙 위반
+
+
+원시 결과: /Users/jeonjaejun/Desktop/Project/LogicUp/backend/eval/results_20260528_135753.json
