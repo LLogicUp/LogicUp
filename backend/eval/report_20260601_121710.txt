@@ -1,0 +1,27 @@
+힌트 정확도 평가 리포트 (20260601_121710)
+============================================================
+
+[ERROR] c_null_pointer L2: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01kh6cpnsef2rr0s1g1tt3nmgp` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5843, Requested 2204. Please try again in 352.5ms. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+[ERROR] py_index_error L1: Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01kh6cpnsef2rr0s1g1tt3nmgp` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5832, Requested 2241. Please try again in 547.5ms. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+■ 카테고리 분류 정확도
+  평균 Precision : 0.646
+  평균 Recall    : 0.729
+  평균 F1        : 0.674
+
+■ LLM Judge 품질 점수 (1~5)
+  평균 점수: 3.92
+  최소: 2  최대: 5
+
+■ 형식 오류: 없음
+
+■ 레벨 규칙 위반 (LLM Judge 판정)
+  c_printf_format L1: 힌트가 레벨 1 규칙을 위반하여 오류 위치(줄 번호)와 코드 스니펫을 제공하지 않고, 오류 원인에 대한 설명을 추가함
+  c_null_pointer L1: 힌트에 오류 수정 방법(동적 메모리 할당)과 정답에 가까운 설명이 포함되어 레벨 1 규칙(오류 위치·코드·타입만 제공) 위반
+  c_string_no_null L1: 힌트에 수정 방법이 포함되어 있으며, 오류 위치와 코드 스니펫이 제공되지 않음
+  c_infinite_loop L1: 필요한 오류 위치(줄 번호)와 코드 스니펫이 누락되었으며, 레벨 1 규칙에 맞게 단순히 오류 타입만 알려야 하는데 원인 설명까지 포함함
+  py_int_division L1: 수정 방법과 구체적인 해결 방안을 제시해 레벨 1 규칙을 위반함
+  py_scope_error L1: 힌트에 'global 키워드 선언이 필요합니다' 라는 수정 방법을 제시하고 있어 레벨 1 규칙인 오류 위치와 타입만 제공해야 하는 요구를 위반함
+  algo_dfs_no_visit L1: 힌트가 레벨 1 규칙을 위반하여 오류 위치(줄 번호)와 해당 코드 스니펫을 제공하지 않았으며, 불필요한 설명을 추가함
+
+
+원시 결과: /Users/jeonjaejun/Desktop/Project/LogicUp/backend/eval/results_20260601_121710.json
