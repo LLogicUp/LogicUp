@@ -6,24 +6,28 @@ import {
   fetchHistory,
   fetchProblemList,
   fetchDirectProblemList,
+  fetchSubmissionList,
   UnauthorizedError,
   type HistoryItem,
   type ProblemSummary,
   type DirectProblemSummary,
+  type SubmissionSummary,
 } from '../api/history';
 
-type HistoryTab = 'all' | 'url' | 'direct';
+type HistoryTab = 'all' | 'url' | 'direct' | 'oj';
 type LanguageFilter = 'all' | 'c' | 'cpp' | 'python' | 'java';
 type QuizLanguage = Exclude<LanguageFilter, 'all'>;
 
 type DrillDown =
   | { kind: 'problem'; problemId: string; label: string }
-  | { kind: 'direct'; problemText: string; label: string };
+  | { kind: 'direct'; problemText: string; label: string }
+  | { kind: 'submission'; submissionId: number; source: 'oj'; label: string };
 
 // 탭 공통 카드 타입
 type GroupedCard =
   | { kind: 'problem'; data: ProblemSummary }
-  | { kind: 'direct'; data: DirectProblemSummary };
+  | { kind: 'direct'; data: DirectProblemSummary }
+  | { kind: 'submission'; data: SubmissionSummary };
 
 const HINT_LEVEL_LABEL: Record<number, string> = {
   1: '오류 위치',
@@ -35,6 +39,7 @@ const TAB_LABELS: Record<HistoryTab, string> = {
   all: '전체',
   url: '문제 불러오기',
   direct: '직접 입력',
+  oj: 'OJ',
 };
 
 const LANGUAGE_LABELS: Record<string, string> = {
@@ -66,6 +71,7 @@ function cardLabel(card: GroupedCard): string {
   const title = card.data.title?.trim();
   if (title) return title;
   if (card.kind === 'problem') return card.data.external_problem_id ?? '불러온 문제';
+  if (card.kind === 'submission') return card.data.problem_snippet || 'OJ 문제';
   return card.data.problem_snippet || '직접 입력';
 }
 
@@ -78,15 +84,21 @@ function languageLabel(language?: string): string {
 }
 
 function cardLanguage(card: GroupedCard): string {
+  if (card.kind === 'submission') return 'c';
   return card.data.language || 'c';
+}
+
+function cardCategories(card: GroupedCard): string[] {
+  return 'categories' in card.data ? card.data.categories ?? [] : [];
 }
 
 interface HistoryPageProps {
   onLogout: () => void;
   onGoToQuiz?: (categories: string[], language: QuizLanguage) => void;
+  isSejongVerified: boolean;
 }
 
-function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
+function HistoryPage({ onLogout, onGoToQuiz, isSejongVerified }: HistoryPageProps) {
   const [activeTab, setActiveTab] = useState<HistoryTab>('all');
   const [activeLanguage, setActiveLanguage] = useState<LanguageFilter>('all');
   const [drillDown, setDrillDown] = useState<DrillDown | null>(null);
@@ -100,6 +112,7 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
   const [allList, setAllList] = useState<GroupedCard[]>([]);
   const [problemList, setProblemList] = useState<ProblemSummary[]>([]);
   const [directList, setDirectList] = useState<DirectProblemSummary[]>([]);
+  const [ojList, setOjList] = useState<SubmissionSummary[]>([]);
   const [listLoading, setListLoading] = useState(false);
 
   const limit = 10;
@@ -123,11 +136,16 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
     let load: Promise<void>;
 
     if (activeTab === 'all') {
-      load = Promise.all([fetchProblemList(), fetchDirectProblemList()])
-        .then(([problems, directs]) => {
+      load = Promise.all([
+        fetchProblemList(),
+        fetchDirectProblemList(),
+        isSejongVerified ? fetchSubmissionList('oj') : Promise.resolve({ items: [] }),
+      ])
+        .then(([problems, directs, ojs]) => {
           const combined: GroupedCard[] = [
             ...problems.items.map((p): GroupedCard => ({ kind: 'problem', data: p })),
             ...directs.items.map((d): GroupedCard => ({ kind: 'direct', data: d })),
+            ...ojs.items.map((s): GroupedCard => ({ kind: 'submission', data: s })),
           ];
           combined.sort(
             (a, b) => new Date(cardDate(b)).getTime() - new Date(cardDate(a)).getTime()
@@ -136,6 +154,10 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
         });
     } else if (activeTab === 'url') {
       load = fetchProblemList().then((d) => setProblemList(d.items));
+    } else if (activeTab === 'oj') {
+      load = isSejongVerified
+        ? fetchSubmissionList('oj').then((d) => setOjList(d.items))
+        : Promise.resolve().then(() => setOjList([]));
     } else {
       load = fetchDirectProblemList().then((d) => setDirectList(d.items));
     }
@@ -143,7 +165,7 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
     load
       .catch((err) => { if (err instanceof UnauthorizedError) handleUnauthorized(); })
       .finally(() => setListLoading(false));
-  }, [activeTab, drillDown, handleUnauthorized]);
+  }, [activeTab, drillDown, handleUnauthorized, isSejongVerified]);
 
   // 드릴다운 선택 시 → 힌트 목록 로드
   useEffect(() => {
@@ -155,6 +177,8 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
     const params =
       drillDown.kind === 'problem'
         ? { page, limit, source: 'url' as const, problem_id: drillDown.problemId }
+        : drillDown.kind === 'submission'
+          ? { page, limit, source: drillDown.source, submission_id: drillDown.submissionId }
         : { page, limit, source: 'direct' as const, problem_text: drillDown.problemText };
 
     fetchHistory(params)
@@ -179,10 +203,17 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
         problemId: card.data.external_problem_id,
         label: cardLabel(card),
       });
-    } else {
+    } else if (card.kind === 'direct') {
       setDrillDown({
         kind: 'direct',
         problemText: card.data.problem,
+        label: cardLabel(card),
+      });
+    } else {
+      setDrillDown({
+        kind: 'submission',
+        submissionId: card.data.submission_id,
+        source: 'oj',
         label: cardLabel(card),
       });
     }
@@ -191,7 +222,9 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
   const renderTabs = () => (
     <>
       <div className="history-tabs">
-        {(Object.keys(TAB_LABELS) as HistoryTab[]).map((tab) => (
+        {(Object.keys(TAB_LABELS) as HistoryTab[])
+          .filter((tab) => tab !== 'oj' || isSejongVerified)
+          .map((tab) => (
           <button
             key={tab}
             className={`history-tab${activeTab === tab ? ' active' : ''}`}
@@ -224,7 +257,13 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
       <div className="problem-list">
         {cards.map((card, i) => (
           <div
-            key={card.kind === 'problem' ? `p-${card.data.external_problem_id}` : `d-${i}-${card.data.last_hint_at}`}
+            key={
+              card.kind === 'problem'
+                ? `p-${card.data.external_problem_id}`
+                : card.kind === 'submission'
+                  ? `s-${card.data.submission_id}`
+                  : `d-${i}-${card.data.last_hint_at}`
+            }
             className="problem-card-row"
           >
             <button
@@ -233,13 +272,13 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
             >
               <div className="problem-card-top">
                 <span className="problem-number">{cardLabel(card)}</span>
-                <span className="problem-language-badge">{languageLabel(card.data.language)}</span>
+                <span className="problem-language-badge">{languageLabel(cardLanguage(card))}</span>
                 <span className="problem-hint-count">힌트 {card.data.hint_count}회</span>
                 <span className="problem-last-date">{formatDate(cardDate(card))}</span>
               </div>
-              {card.data.categories && card.data.categories.length > 0 && (
+              {cardCategories(card).length > 0 && (
                 <div className="problem-category-tags">
-                  {card.data.categories.map((cat) => (
+                  {cardCategories(card).map((cat) => (
                     <span key={cat} className="problem-category-tag">{cat}</span>
                   ))}
                 </div>
@@ -248,9 +287,9 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
             {onGoToQuiz && (
               <button
                 className="problem-quiz-btn"
-                onClick={() => onGoToQuiz(card.data.categories ?? [], cardLanguage(card) as QuizLanguage)}
-                disabled={(card.data.categories ?? []).length === 0}
-                title={(card.data.categories ?? []).length === 0 ? '생성할 오류 유형이 없습니다.' : undefined}
+                onClick={() => onGoToQuiz(cardCategories(card), cardLanguage(card) as QuizLanguage)}
+                disabled={cardCategories(card).length === 0}
+                title={cardCategories(card).length === 0 ? '생성할 오류 유형이 없습니다.' : undefined}
               >
                 퀴즈
               </button>
@@ -321,6 +360,12 @@ function HistoryPage({ onLogout, onGoToQuiz }: HistoryPageProps) {
       return renderCardList(
         filterByLanguage(problemList.map((p): GroupedCard => ({ kind: 'problem', data: p }))),
         emptyMsg ?? '불러온 문제 기록이 없습니다.',
+      );
+    }
+    if (activeTab === 'oj') {
+      return renderCardList(
+        filterByLanguage(ojList.map((s): GroupedCard => ({ kind: 'submission', data: s }))),
+        emptyMsg ?? 'OJ 기록이 없습니다.',
       );
     }
     return renderCardList(

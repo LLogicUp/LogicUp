@@ -109,6 +109,7 @@ function App() {
           element={
             <HistoryPage
               onLogout={handleLogout}
+              isSejongVerified={isSejongVerified}
               onGoToQuiz={(categories, language) =>
                 navigate('/quiz', { state: { autoGenerate: true, categories, language } })
               }

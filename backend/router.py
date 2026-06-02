@@ -1,4 +1,5 @@
 import json
+import re
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -28,6 +29,24 @@ def ensure_sejong_access_for_source(source: str | None, payload: dict) -> None:
 def should_exclude_oj_history(source: str | None, payload: dict) -> bool:
     ensure_sejong_access_for_source(source, payload)
     return source is None and payload.get("is_sejong_verified") is not True
+
+
+def parse_oj_submission_metadata(problem: str) -> tuple[str | None, str]:
+    subject_match = re.search(r"^과목:\s*.+?\(([^)]+)\)", problem, re.MULTILINE)
+    chapter_match = re.search(r"^장:\s*(\S+)", problem, re.MULTILINE)
+    number_match = re.search(r"^문제 번호:\s*(\S+)", problem, re.MULTILINE)
+    title_match = re.search(r"^문제 제목:\s*(.+)$", problem, re.MULTILINE)
+
+    title = title_match.group(1).strip() if title_match else ""
+    title = "" if title == "미입력" else title
+
+    if not (subject_match and chapter_match and number_match):
+        return None, title
+
+    return (
+        f"oj:{subject_match.group(1)}:{chapter_match.group(1)}:{number_match.group(1)}",
+        title,
+    )
 
 
 @router.get("/health")
@@ -69,8 +88,7 @@ def get_hint(
             expected_input = request.expected_input
             expected_output = request.expected_output
             source = "oj"
-            external_problem_id = None
-            title = ""
+            external_problem_id, title = parse_oj_submission_metadata(problem)
             logger.info("OJ 문제 사용")
         elif request.problem_url:
             fetched = fetch_problem_from_url(request.problem_url)
